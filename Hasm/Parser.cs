@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text.RegularExpressions;
@@ -22,11 +22,12 @@ namespace Hasm
         DivisionByZero,
         NaN,
         StackOverflow,
+        InvalidJump,
         
-        AssertFailed = 300,
+        AssertFailed = 900,
     }
 
-    [System.Flags]
+    [Flags]
     public enum DebugData
     {
         None = 0,
@@ -38,7 +39,7 @@ namespace Hasm
     {
         public readonly Error Error;
         public readonly string? RawInstruction;
-        public readonly int Line;
+        public readonly uint Line;
 
         internal static Result Success()
         {
@@ -52,7 +53,7 @@ namespace Hasm
             Line = instruction.Line;
         }
         
-        internal Result(Error error, int line = 0, string? rawInstruction = null)
+        internal Result(Error error, uint line = 0, string? rawInstruction = null)
         {
             Error = error;
             RawInstruction = rawInstruction;
@@ -66,7 +67,8 @@ namespace Hasm
         private readonly float[] _registries;
         private readonly float[] _stack;
 
-        private uint _stackPointer = 0;
+        private uint _stackPointer;
+        private uint _returnAddress;
 
         public Processor(int numRegistries = 8, int stackLength = 32, int frequencyHz = 0 /* not simulated */)
         {
@@ -74,62 +76,95 @@ namespace Hasm
             _stack = new float[stackLength];
             _frequencyHz = frequencyHz;
         }
+
+        private void SetRegistry(ref Instruction instruction, float value)
+        {
+            switch (instruction.DestinationRegistryType)
+            {
+                case OperandType.UserRegistry:
+                    _registries[instruction.DestinationRegistry] = value;
+                    break;
+                
+                case OperandType.StackPointer:
+                    _stackPointer = (uint)value;
+                    break;
+                
+                case OperandType.ReturnAddress:
+                    _returnAddress = (uint)value;
+                    break;
+                
+                case OperandType.Literal:
+                    throw new InvalidOperationException();
+                
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
+
+        private bool TryGetOperandValue(OperandType type, ref float value)
+        {
+            if (type == OperandType.UserRegistry && (value < 0 || value >= _registries.Length))
+                return false;
+            
+            switch (type)
+            {
+                case OperandType.Literal: break;
+                case OperandType.UserRegistry: value = _registries[(int)value]; break;
+                case OperandType.StackPointer: value = _stackPointer; break;
+                case OperandType.ReturnAddress: value = _returnAddress; break;
+                default: throw new ArgumentOutOfRangeException();
+            }
+
+            return true;
+        }
         
         public Result Run(Program program, Action<string>? debugCallback = null, DebugData debugData = DebugData.None)
         {
-            for (int i = 0; i < program.Instructions.Length; i++)
+            for (int index = 0; index < program.Instructions.Length; index++)
             {
-                Instruction instruction = program.Instructions[i];
-
-                if (instruction.DestinationRegistry < 0 || instruction.DestinationRegistry >= _registries.Length)
-                    return new Result(Error.RegistryOutOfBound, instruction);
-                    
-                if (instruction.LeftOperandType == OperandType.Registry 
-                    && (instruction.LeftOperandValue < 0 || instruction.LeftOperandValue >= _registries.Length))
-                    return new Result(Error.RegistryOutOfBound, instruction);
-                    
-                if (instruction.RightOperandType == OperandType.Registry 
-                    && (instruction.RightOperandValue < 0 || instruction.RightOperandValue >= _registries.Length))
-                    return new Result(Error.RegistryOutOfBound, instruction);
-                    
-                float leftOperandValue = instruction.LeftOperandType == OperandType.Registry 
-                    ? _registries[(int)instruction.LeftOperandValue] 
-                    : instruction.LeftOperandValue;
-                float rightOperandValue = instruction.RightOperandType == OperandType.Registry 
-                    ? _registries[(int)instruction.RightOperandValue] 
-                    : instruction.RightOperandValue;
+                Instruction instruction = program.Instructions[index];
                 
+                float leftOperandValue = instruction.LeftOperandValue;
+                float rightOperandValue = instruction.RightOperandValue;
+                
+                if (!TryGetOperandValue(instruction.LeftOperandType, ref leftOperandValue) ||
+                    !TryGetOperandValue(instruction.RightOperandType, ref rightOperandValue) ||
+                    instruction.DestinationRegistry >= _registries.Length)
+                {
+                    return new Result(Error.RegistryOutOfBound, instruction);
+                }
+
                 switch (instruction.Operation)
                 {
                     case Operation.Nop:
                         break;
                     
                     case Operation.Move:
-                        _registries[instruction.DestinationRegistry] = leftOperandValue;
+                        SetRegistry(ref instruction, leftOperandValue);
                         break;
                     
                     case Operation.Add:
-                        _registries[instruction.DestinationRegistry] = leftOperandValue + rightOperandValue;
+                        SetRegistry(ref instruction, leftOperandValue + rightOperandValue);
                         break;
                     
                     case Operation.Subtract:
-                        _registries[instruction.DestinationRegistry] = leftOperandValue - rightOperandValue;
+                        SetRegistry(ref instruction, leftOperandValue - rightOperandValue);
                         break;
                     
                     case Operation.Multiply:
-                        _registries[instruction.DestinationRegistry] = leftOperandValue * rightOperandValue;
+                        SetRegistry(ref instruction, leftOperandValue * rightOperandValue);
                         break;
                     
                     case Operation.Divide:
                         if (rightOperandValue == 0)
                             return new Result(Error.DivisionByZero, instruction);
-                        _registries[instruction.DestinationRegistry] = leftOperandValue / rightOperandValue;
+                        SetRegistry(ref instruction, leftOperandValue / rightOperandValue);
                         break;
                     
                     case Operation.SquareRoot:
                         if (leftOperandValue < 0 )
                             return new Result(Error.NaN, instruction);
-                        _registries[instruction.DestinationRegistry] = (float)Math.Sqrt(leftOperandValue);
+                        SetRegistry(ref instruction, (float)Math.Sqrt(leftOperandValue));
                         break;
                     
                     case Operation.Push:
@@ -141,29 +176,68 @@ namespace Hasm
                     case Operation.Pop:
                         if (_stackPointer == 0)
                             return new Result(Error.StackOverflow, instruction);
-                        _registries[instruction.DestinationRegistry] = _stack[--_stackPointer];
+                        SetRegistry(ref instruction, _stack[--_stackPointer]);
                         break;
                     
                     case Operation.Peek:
                         if (_stackPointer == 0)
                             return new Result(Error.StackOverflow, instruction);
-                        _registries[instruction.DestinationRegistry] = _stack[_stackPointer - 1];
+                        SetRegistry(ref instruction, _stack[_stackPointer - 1]);
                         break;
                     
                     case Operation.Assert:
                         if (Math.Abs(_registries[instruction.DestinationRegistry] - leftOperandValue) > float.Epsilon)
                             return new Result(Error.AssertFailed, instruction);
                         break;
-                    
+
+                    case Operation.Jump:
+                    {
+                        var foundDestination = -1;
+                        for (var searchIndex = 0; searchIndex < program.Instructions.Length; searchIndex++)
+                        {
+                            if (program.Instructions[searchIndex].Line == (int)leftOperandValue)
+                            {
+                                foundDestination = searchIndex;
+                                break;
+                            }
+                        }
+
+                        if (foundDestination < 0)
+                            return new Result(Error.InvalidJump, instruction);
+                        index = foundDestination - 1;
+                        break;
+                    }
+
+                    case Operation.JumpReturnAddress:
+                    {
+                        var foundDestination = -1;
+                        for (var searchIndex = 0; searchIndex < program.Instructions.Length; searchIndex++)
+                        {
+                            if (program.Instructions[searchIndex].Line == (int)leftOperandValue)
+                            {
+                                foundDestination = searchIndex;
+                                break;
+                            }
+                        }
+
+                        if (foundDestination < 0)
+                            return new Result(Error.InvalidJump, instruction);
+                        index = foundDestination - 1;
+
+                        _returnAddress = instruction.Line + 1;
+                        
+                        break;
+                    }
+
                     default:
                         return new Result(Error.OperationNotImplemented, instruction);
                 }
                 
                 if ((debugData & DebugData.Instruction) > 0)
-                    debugCallback?.Invoke($"processor > Exe[{instruction.Line}]: " + instruction);
+                    debugCallback?.Invoke($"processor > Exe[{instruction.Line:d4}]: " + instruction);
                 
                 if ((debugData & DebugData.Memory) > 0)
-                    debugCallback?.Invoke($"processor > Reg[{instruction.Line}]: " + DumpMemory());
+                    debugCallback?.Invoke($"processor > Reg[{instruction.Line:d4}]: " + DumpMemory());
                 
                 if (_frequencyHz > 0)
                     Thread.Sleep(1000 / _frequencyHz);
@@ -179,9 +253,9 @@ namespace Hasm
 
         public string DumpMemory()
         {
-            return $"Registries: {string.Join(" ", _registries)} " +
-                   $"Stack: {string.Join(" ", _stack)} " +
-                   $"Sp: {_stackPointer}";
+            return $"Sp: {_stackPointer:d4} Ra: {_returnAddress:d4} " + 
+                   $"Registries: {string.Join(" ", _registries)} " +
+                   $"Stack: {string.Join(" ", _stack)} ";
         }
     }
 
@@ -192,7 +266,7 @@ namespace Hasm
             List<Instruction> instructions = new List<Instruction>();
             
             string[] lines = input.Split('\n');
-            for (var index = 0; index < lines.Length; index++)
+            for (var index = 0u; index < lines.Length; index++)
             {
                 // Pre-parse.
                 lines[index] =  lines[index].Trim();
@@ -248,9 +322,58 @@ namespace Hasm
                     continue;
                 }
                 
+                // Stuff...
+                
+                // TODO: replace opl with new opd (registry type).
+                regex = new Regex(@"^(?<opt>j|jra)\s+(?<opl>r\d+\b|ra|sp|[1-9]\d*\b)$");
+                match = regex.Match(lines[index]);
+                
+                if (match.Success)
+                {
+                    string opt = match.Groups["opt"].Value;
+                    string opl = match.Groups["opl"].Value;
+                    
+                    Instruction instruction = default;
+                    instruction.RawText = lines[index];
+                    instruction.Line = index + 1;
+                    
+                    switch (opt)
+                    {
+                        case "j": instruction.Operation = Operation.Jump; break;
+                        case "jra": instruction.Operation = Operation.JumpReturnAddress; break;
+                        default: return new Result(Error.OperationNotSupported, instruction);
+                    }
+
+                    if (opl == "ra")
+                    {
+                        instruction.LeftOperandType = OperandType.ReturnAddress;
+                    }
+                    else if (opl == "sp")
+                    {
+                        instruction.LeftOperandType = OperandType.StackPointer;
+                    }
+                    else if (opl[0] == 'r')
+                    {
+                        instruction.LeftOperandType = OperandType.UserRegistry;
+                        instruction.LeftOperandValue = int.Parse(opl.Substring(1));
+                    }
+                    else
+                    {
+                        instruction.LeftOperandType = OperandType.Literal;
+                        instruction.LeftOperandValue = float.Parse(opl, CultureInfo.InvariantCulture);
+                    }
+                    
+                    instructions.Add(instruction);
+                    
+                    if ((debugData & DebugData.Instruction) > 0)
+                        debugCallback?.Invoke("compiler > " + instruction);
+
+                    continue;
+                }
+                
                 // Registry operations.
                 
-                regex = new Regex(@"^(?<opt>push|pop|peek)\s+(?<opd>r\d+\b)$");
+                regex = new Regex(@"^(?<opt>push|pop|peek)\s+(?<opd>r\d+\b|ra|sp)$");
                 match = regex.Match(lines[index]);
 
                 if (match.Success)
@@ -270,7 +393,19 @@ namespace Hasm
                         default: return new Result(Error.OperationNotSupported, instruction);
                     }
                     
-                    instruction.DestinationRegistry = int.Parse(opd.Substring(1));
+                    if (opd == "ra")
+                    {
+                        instruction.DestinationRegistryType = OperandType.ReturnAddress;
+                    }
+                    else if (opd == "sp")
+                    {
+                        instruction.DestinationRegistryType = OperandType.StackPointer;
+                    }
+                    else
+                    {
+                        instruction.DestinationRegistryType = OperandType.UserRegistry;
+                        instruction.DestinationRegistry = uint.Parse(opd.Substring(1));
+                    }
                     
                     instructions.Add(instruction);
                     
@@ -283,7 +418,7 @@ namespace Hasm
                 // Unary operations.
 
                 // regex = new Regex(@"(?<opt>mov|sqrt)\s+(?<opd>r\d+)\s+(?<opl>r?\d+[.]?\d*)");
-                regex = new Regex(@"^(?<opt>mov|sqrt|assert)\s+(?<opd>r\d+\b)\s+(?<opl>-?\d+[.]?\d*|r\d+\b)$");
+                regex = new Regex(@"^(?<opt>mov|sqrt|assert)\s+(?<opd>r\d+\b|ra|sp)\s+(?<opl>-?\d+[.]?\d*|r\d+\b|ra|sp)$");
                 match = regex.Match(lines[index]);
 
                 if (match.Success)
@@ -304,11 +439,32 @@ namespace Hasm
                         default: return new Result(Error.OperationNotSupported, instruction);
                     }
                     
-                    instruction.DestinationRegistry = int.Parse(opd.Substring(1));
-                    
-                    if (opl[0] == 'r')
+                    if (opd == "ra")
                     {
-                        instruction.LeftOperandType = OperandType.Registry;
+                        instruction.DestinationRegistryType = OperandType.ReturnAddress;
+                    }
+                    else if (opd == "sp")
+                    {
+                        instruction.DestinationRegistryType = OperandType.StackPointer;
+                    }
+                    else
+                    {
+                        instruction.DestinationRegistryType = OperandType.UserRegistry;
+                        instruction.DestinationRegistry = uint.Parse(opd.Substring(1));
+                    }
+                    
+                    // TODO: Put all that in a function, goddamit!
+                    if (opl == "ra")
+                    {
+                        instruction.LeftOperandType = OperandType.ReturnAddress;
+                    }
+                    else if (opl == "sp")
+                    {
+                        instruction.LeftOperandType = OperandType.StackPointer;
+                    }
+                    else if (opl[0] == 'r')
+                    {
+                        instruction.LeftOperandType = OperandType.UserRegistry;
                         instruction.LeftOperandValue = int.Parse(opl.Substring(1));
                     }
                     else
@@ -330,7 +486,7 @@ namespace Hasm
                 // regex = new Regex(
                 //     @"^(?<opt>add|sub|mul|div)\s+(?<opd>r\d+)\s+(?<opl>r?\d+[.]?\d*)\s+(?<opr>r?\d+[.]?\d*)$");
                 regex = new Regex(
-                    @"^(?<opt>add|sub|mul|div)\s+(?<opd>r\d+\b)\s+(?<opl>-?\d+[.]?\d*|r\d+\b)\s+(?<opr>-?\d+[.]?\d*|r\d+\b)$");
+                    @"^(?<opt>add|sub|mul|div)\s+(?<opd>r\d+\b|ra|sp)\s+(?<opl>-?\d+[.]?\d*|r\d+\b|ra|sp)\s+(?<opr>-?\d+[.]?\d*|r\d+\b|ra|sp)$");
                 match = regex.Match(lines[index]);
 
                 if (match.Success)
@@ -342,7 +498,7 @@ namespace Hasm
 
                     Instruction instruction = default;
                     instruction.RawText = lines[index];
-                    instruction.Line = index + 1;
+                    instruction.Line = index + 1u;
                     
                     switch (opt)
                     {
@@ -353,11 +509,33 @@ namespace Hasm
                         default: return new Result(Error.OperationNotSupported, instruction);
                     }
 
-                    instruction.DestinationRegistry = int.Parse(opd.Substring(1));
+                    
 
-                    if (opl[0] == 'r')
+                    if (opd == "ra")
                     {
-                        instruction.LeftOperandType = OperandType.Registry;
+                        instruction.DestinationRegistryType = OperandType.ReturnAddress;
+                    }
+                    else if (opd == "sp")
+                    {
+                        instruction.DestinationRegistryType = OperandType.StackPointer;
+                    }
+                    else
+                    {
+                        instruction.DestinationRegistryType = OperandType.UserRegistry;
+                        instruction.DestinationRegistry = uint.Parse(opd.Substring(1));
+                    }
+                    
+                    if (opl == "ra")
+                    {
+                        instruction.LeftOperandType = OperandType.ReturnAddress;
+                    }
+                    else if (opl == "sp")
+                    {
+                        instruction.LeftOperandType = OperandType.StackPointer;
+                    }
+                    else if (opl[0] == 'r')
+                    {
+                        instruction.LeftOperandType = OperandType.UserRegistry;
                         instruction.LeftOperandValue = int.Parse(opl.Substring(1));
                     }
                     else
@@ -368,7 +546,7 @@ namespace Hasm
 
                     if (opr[0] == 'r')
                     {
-                        instruction.RightOperandType = OperandType.Registry;
+                        instruction.RightOperandType = OperandType.UserRegistry;
                         instruction.RightOperandValue = int.Parse(opr.Substring(1));
                     }
                     else
@@ -411,6 +589,8 @@ namespace Hasm
         Push,
         Pop,
         Peek,
+        Jump,
+        JumpReturnAddress,
         
         Assert = 100,
     }
@@ -418,14 +598,17 @@ namespace Hasm
     internal enum OperandType
     {
         Literal,
-        Registry
+        UserRegistry,
+        StackPointer,
+        ReturnAddress
     }
     
     internal struct Instruction
     {
         internal Operation Operation;
 
-        internal int DestinationRegistry;
+        internal OperandType DestinationRegistryType;
+        internal uint DestinationRegistry;
         
         internal OperandType LeftOperandType;
         internal float LeftOperandValue;
@@ -433,12 +616,12 @@ namespace Hasm
         internal OperandType RightOperandType;
         internal float RightOperandValue;
 
-        internal int Line;
+        internal uint Line;
         internal string RawText;
 
         public override string ToString()
         {
-            return $"{Operation} {DestinationRegistry} {LeftOperandType} {LeftOperandValue} " +
+            return $"{Operation} {DestinationRegistryType} {DestinationRegistry} {LeftOperandType} {LeftOperandValue} " +
                    $"{RightOperandType} {RightOperandValue}";
         }
     }

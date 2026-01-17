@@ -1,5 +1,12 @@
 # vector normalisation
 
+# jump over nop
+mov r3 11
+j r3
+nop
+nop
+nop
+
 # vector
 mov r0 0
 mov r1 -1
