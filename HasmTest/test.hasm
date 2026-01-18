@@ -1,3 +1,8 @@
+@req:r4
+@req:s2
+
+# Test addition function.
+
 main:
     mov r0 2
     mov r1 3
@@ -5,7 +10,8 @@ main:
     push r1
     jra f_add
     pop r0
-    j test 
+    jra test
+    ret 
 
 f_add:
     pop r3
@@ -19,3 +25,4 @@ test:
     assert r1 3
     assert r2 5
     assert r3 3
+    j ra

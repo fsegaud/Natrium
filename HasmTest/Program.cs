@@ -14,7 +14,7 @@ class Program
             Console.Error.WriteLine($"Compilation Error: {result.Error} ({result.Error:D}) " +
                                     $"'{result.RawInstruction}' at line {result.Line}");
         }
-        
+
         Hasm.Processor processor = new Hasm.Processor(4, 8, 100);
         result = processor.Run(program, DebugCallback, Hasm.DebugData.All);
         if (result.Error != Hasm.Error.Success)

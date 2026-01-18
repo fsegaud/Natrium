@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.Runtime.Serialization.Formatters.Binary;
 using System.Text.RegularExpressions;
 using System.Threading;
 
@@ -19,7 +18,8 @@ namespace Hasm
         OperationNotSupported,
         
         // Processor
-        OperationNotImplemented = 200,
+        RequirementsNotMet = 200,
+        OperationNotImplemented,
         RegistryOutOfBound,
         DivisionByZero,
         NaN,
@@ -71,7 +71,7 @@ namespace Hasm
     public class Processor
     {
         private readonly int _frequencyHz;
-        private readonly float[] _registries;
+        private readonly float[] _registers;
         private readonly float[] _stack;
 
         private uint _stackPointer;
@@ -79,7 +79,7 @@ namespace Hasm
 
         public Processor(int numRegistries = 8, int stackLength = 32, int frequencyHz = 0 /* not simulated */)
         {
-            _registries = new float[numRegistries];
+            _registers = new float[numRegistries];
             _stack = new float[stackLength];
             _frequencyHz = frequencyHz;
         }
@@ -89,7 +89,7 @@ namespace Hasm
             switch (instruction.DestinationRegistryType)
             {
                 case OperandType.UserRegistry:
-                    _registries[instruction.DestinationRegistry] = value;
+                    _registers[instruction.DestinationRegistry] = value;
                     break;
                 
                 case OperandType.StackPointer:
@@ -110,13 +110,13 @@ namespace Hasm
 
         private bool TryGetOperandValue(OperandType type, ref float value)
         {
-            if (type == OperandType.UserRegistry && (value < 0 || value >= _registries.Length))
+            if (type == OperandType.UserRegistry && (value < 0 || value >= _registers.Length))
                 return false;
             
             switch (type)
             {
                 case OperandType.Literal: break;
-                case OperandType.UserRegistry: value = _registries[(int)value]; break;
+                case OperandType.UserRegistry: value = _registers[(int)value]; break;
                 case OperandType.StackPointer: value = _stackPointer; break;
                 case OperandType.ReturnAddress: value = _returnAddress; break;
                 default: throw new ArgumentOutOfRangeException();
@@ -127,6 +127,9 @@ namespace Hasm
         
         public Result Run(Program program, Action<string>? debugCallback = null, DebugData debugData = DebugData.None)
         {
+            if (_registers.Length < program.RequiredRegisters || _stack.Length < program.RequiredStack)
+                return new Result(Error.RequirementsNotMet);
+            
             bool breakLoop = false;
             for (int index = 0; index < program.Instructions.Length && !breakLoop; index++)
             {
@@ -137,7 +140,7 @@ namespace Hasm
                 
                 if (!TryGetOperandValue(instruction.LeftOperandType, ref leftOperandValue) ||
                     !TryGetOperandValue(instruction.RightOperandType, ref rightOperandValue) ||
-                    instruction.DestinationRegistry >= _registries.Length)
+                    instruction.DestinationRegistry >= _registers.Length)
                 {
                     return new Result(Error.RegistryOutOfBound, instruction);
                 }
@@ -178,7 +181,7 @@ namespace Hasm
                     case Operation.Push:
                         if (_stackPointer >= _stack.Length)
                             return new Result(Error.StackOverflow, instruction);
-                        _stack[_stackPointer++] = _registries[instruction.DestinationRegistry];
+                        _stack[_stackPointer++] = _registers[instruction.DestinationRegistry];
                         break;
                     
                     case Operation.Pop:
@@ -194,7 +197,7 @@ namespace Hasm
                         break;
                     
                     case Operation.Assert:
-                        if (Math.Abs(_registries[instruction.DestinationRegistry] - leftOperandValue) > float.Epsilon)
+                        if (Math.Abs(_registers[instruction.DestinationRegistry] - leftOperandValue) > float.Epsilon)
                             return new Result(Error.AssertFailed, instruction);
                         break;
 
@@ -267,13 +270,13 @@ namespace Hasm
 
         public float ReadRegistry(int registry)
         {
-            return registry >= 0 && registry < _registries.Length ? _registries[registry] : float.NaN;
+            return registry >= 0 && registry < _registers.Length ? _registers[registry] : float.NaN;
         }
 
         public string DumpMemory()
         {
             return $"Sp: {_stackPointer:d4} Ra: {_returnAddress:d4} " + 
-                   $"Registries: {string.Join(" ", _registries)} " +
+                   $"Registries: {string.Join(" ", _registers)} " +
                    $"Stack: {string.Join(" ", _stack)} ";
         }
     }
@@ -286,17 +289,53 @@ namespace Hasm
             Dictionary<string, uint> labelToLine = new Dictionary<string, uint>();
             
             string[] lines = input.Split('\n');
-            
+
             for (var index = 0u; index < lines.Length; index++)
             {
+                // Trim.
+                
                 lines[index] =  lines[index].Trim();
                 if (string.IsNullOrEmpty(lines[index]))
                     continue;
                 
+                // Comments.
+
+                Regex regex = new Regex(@".*(?<com>[;#].*)"); // TODO: One Regex object per expression.
+                Match match = regex.Match(lines[index]);
+
+                if (match.Success)
+                {
+                    lines[index] = lines[index].Replace(match.Groups["com"].Value, string.Empty).TrimEnd();
+
+                    if (string.IsNullOrEmpty(lines[index]))
+                        continue;
+                }
+                
+                // Requires.
+                
+                regex = new Regex(@"^@req:(?<type>r|s)(?<val>\d+)");
+                match = regex.Match(lines[index]);
+
+                if (match.Success)
+                {
+                    string type =  match.Groups["type"].Value;
+                    uint value = uint.Parse(match.Groups["val"].Value);
+                    
+                    switch (type)
+                    {
+                        case "r" : program.RequiredRegisters = value; break;
+                        case "s" : program.RequiredStack = value; break;
+                        default: throw new NotImplementedException();
+                    }
+                    
+                    lines[index] = string.Empty; // Consume.
+                    continue;
+                }
+                
                 // Pre-parse: labels(1).
                 
-                Regex regex = new Regex(@"^(?<label>[A-Za-z_]+)\s*:$");
-                Match match = regex.Match(lines[index]);
+                regex = new Regex(@"^(?<label>[A-Za-z_]+)\s*:$");
+                match = regex.Match(lines[index]);
 
                 if (match.Success)
                 {
@@ -329,31 +368,17 @@ namespace Hasm
                 {
                     string opt = match.Groups["opt"].Value;
                     string label = match.Groups["label"].Value;
-                    
+
                     regex = new Regex(@"^ra|r\d+$"); // registries are not labels.
                     if (!regex.Match(label).Success)
                     {
-                        uint jumpLine;
-                        if (!labelToLine.TryGetValue(label, out jumpLine))
+                        if (!labelToLine.TryGetValue(label, out var jumpLine))
                             return new Result(Error.LabelNotFound, index + 1, lines[index]);
 
                         lines[index] = $"{opt} {jumpLine}";
                     }
 
                     // Do not continue, instruction will be processed later.
-                }
-
-                // Comments.
-
-                regex = new Regex(@".*(?<com>[;#].*)"); // TODO: One Regex object per expression.
-                match = regex.Match(lines[index]);
-
-                if (match.Success)
-                {
-                    lines[index] = lines[index].Replace(match.Groups["com"].Value, string.Empty).TrimEnd();
-
-                    if (string.IsNullOrEmpty(lines[index]))
-                        continue;
                 }
                 
                 // Self operations.
@@ -703,6 +728,11 @@ namespace Hasm
     public class Program
     {
         [ProtoBuf.ProtoMember(1)]
+        public uint RequiredRegisters { get; internal set; }
+        [ProtoBuf.ProtoMember(2)]
+        public uint RequiredStack { get; internal set; }
+        
+        [ProtoBuf.ProtoMember(3)]
         internal Instruction[] Instructions = Array.Empty<Instruction>();
         
         public string ToBase64()
