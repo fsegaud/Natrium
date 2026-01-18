@@ -235,8 +235,16 @@ namespace Hasm
                             return new Result(Error.InvalidJump, instruction);
                         index = foundDestination - 1;
 
-                        _returnAddress = instruction.Line + 1;
-                        
+                        // Find next instruction (+1 wouldn't ignore blank lines and comments).
+                        for (var searchIndex = 0u; searchIndex < program.Instructions.Length; searchIndex++)
+                        {
+                            if (program.Instructions[searchIndex].Line > instruction.Line + 1)
+                            {
+                                _returnAddress = program.Instructions[searchIndex].Line;
+                                break;
+                            }
+                        }
+
                         break;
                     }
                     

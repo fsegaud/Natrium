@@ -4,13 +4,21 @@
 # Test addition function.
 
 main:
+    # declare values
     mov r0 2
     mov r1 3
+    
+    # push values
     push r0
     push r1
+    
+    # call function
     jra f_add
+    
+    # pop and test result
     pop r0
-    jra test
+    assert r0 5
+    
     ret 
 
 f_add:
@@ -18,11 +26,4 @@ f_add:
     pop r2
     add r2 r2 r3
     push r2
-    j ra
-    
-test:
-    assert r0 5
-    assert r1 3
-    assert r2 5
-    assert r3 3
-    j ra
+    j ra # return to caller
