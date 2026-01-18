@@ -30,9 +30,12 @@ namespace Hasm
     [Flags]
     public enum DebugData
     {
-        None = 0,
-        Instruction = 1,
-        Memory = 2
+        None                = 0,
+        RawInstruction      = 1 << 0,
+        CompiledInstruction = 1 << 1,
+        Memory              = 1 << 2,
+        Separator           = 1 << 30,
+        All                 = ~0
     }
 
     public struct Result
@@ -233,11 +236,18 @@ namespace Hasm
                         return new Result(Error.OperationNotImplemented, instruction);
                 }
                 
-                if ((debugData & DebugData.Instruction) > 0)
-                    debugCallback?.Invoke($"processor > Exe[{instruction.Line:d4}]: " + instruction);
+                if ((debugData & DebugData.RawInstruction) > 0)
+                    debugCallback?.Invoke($"processor > Raw[{instruction.Line:d4}]: " + instruction.RawText);
+                
+                if ((debugData & DebugData.CompiledInstruction) > 0)
+                    debugCallback?.Invoke($"processor > Cmp[{instruction.Line:d4}]: " + instruction);
                 
                 if ((debugData & DebugData.Memory) > 0)
-                    debugCallback?.Invoke($"processor > Reg[{instruction.Line:d4}]: " + DumpMemory());
+                    debugCallback?.Invoke($"processor > Mem[{instruction.Line:d4}]: " + DumpMemory());
+                
+                if ((debugData & DebugData.Separator) > 0)
+                    debugCallback?.Invoke("-------------------------------------------------------------------------" +
+                                          "-----------------------------------------------");
                 
                 if (_frequencyHz > 0)
                     Thread.Sleep(1000 / _frequencyHz);
@@ -316,7 +326,7 @@ namespace Hasm
 
                     instructions.Add(instruction);
                     
-                    if ((debugData & DebugData.Instruction) > 0)
+                    if ((debugData & DebugData.CompiledInstruction) > 0)
                         debugCallback?.Invoke("compiler > " + instruction);
 
                     continue;
@@ -365,7 +375,7 @@ namespace Hasm
                     
                     instructions.Add(instruction);
                     
-                    if ((debugData & DebugData.Instruction) > 0)
+                    if ((debugData & DebugData.CompiledInstruction) > 0)
                         debugCallback?.Invoke("compiler > " + instruction);
 
                     continue;
@@ -409,7 +419,7 @@ namespace Hasm
                     
                     instructions.Add(instruction);
                     
-                    if ((debugData & DebugData.Instruction) > 0)
+                    if ((debugData & DebugData.CompiledInstruction) > 0)
                         debugCallback?.Invoke("compiler > " + instruction);
 
                     continue;
@@ -475,7 +485,7 @@ namespace Hasm
                     
                     instructions.Add(instruction);
                     
-                    if ((debugData & DebugData.Instruction) > 0)
+                    if ((debugData & DebugData.CompiledInstruction) > 0)
                         debugCallback?.Invoke("compiler > " + instruction);
 
                     continue;
@@ -557,7 +567,7 @@ namespace Hasm
 
                     instructions.Add(instruction);
                     
-                    if ((debugData & DebugData.Instruction) > 0)
+                    if ((debugData & DebugData.CompiledInstruction) > 0)
                         debugCallback?.Invoke("compiler > " + instruction);
 
                     continue;

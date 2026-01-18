@@ -16,7 +16,7 @@ class Program
         }
         
         Hasm.Processor processor = new Hasm.Processor(4, 8, 100);
-        result = processor.Run(program, DebugCallback, Hasm.DebugData.Instruction | Hasm.DebugData.Memory);
+        result = processor.Run(program, DebugCallback, Hasm.DebugData.All);
         if (result.Error != Hasm.Error.Success)
         {
             Console.Error.WriteLine(
