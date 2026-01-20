@@ -1,294 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.IO;
 using System.Text.RegularExpressions;
-using System.Threading;
-
-// TODO: Jumps
 
 namespace Hasm
 {
-    public enum Error
-    {
-        Success = 0,
-        
-        // Compiler.
-        SyntaxError = 100,
-        OperationNotSupported,
-        
-        // Processor
-        RequirementsNotMet = 200,
-        OperationNotImplemented,
-        RegistryOutOfBound,
-        DivisionByZero,
-        NaN,
-        StackOverflow,
-        InvalidJump,
-        LabelNotFound,
-        
-        AssertFailed = 900,
-    }
-
-    [Flags]
-    public enum DebugData
-    {
-        None                = 0,
-        Binary              = 1 << 0,
-        RawInstruction      = 1 << 1,
-        CompiledInstruction = 1 << 2,
-        Memory              = 1 << 3,
-        Separator           = 1 << 30,
-        All                 = ~0
-    }
-
-    public struct Result
-    {
-        public readonly Error Error;
-        public readonly string? RawInstruction;
-        public readonly uint Line;
-
-        internal static Result Success()
-        {
-            return new Result(Error.Success);
-        }
-        
-        internal Result(Error error, Instruction instruction)
-        {
-            Error = error;
-            RawInstruction = instruction.RawText;
-            Line = instruction.Line;
-        }
-        
-        internal Result(Error error, uint line = 0, string? rawInstruction = null)
-        {
-            Error = error;
-            RawInstruction = rawInstruction;
-            Line = line;
-        }
-    }
-    
-    public class Processor
-    {
-        private readonly int _frequencyHz;
-        private readonly float[] _registers;
-        private readonly float[] _stack;
-
-        private uint _stackPointer;
-        private uint _returnAddress;
-
-        public Processor(int numRegistries = 8, int stackLength = 32, int frequencyHz = 0 /* not simulated */)
-        {
-            _registers = new float[numRegistries];
-            _stack = new float[stackLength];
-            _frequencyHz = frequencyHz;
-        }
-
-        private void SetRegistry(ref Instruction instruction, float value)
-        {
-            switch (instruction.DestinationRegistryType)
-            {
-                case OperandType.UserRegistry:
-                    _registers[instruction.DestinationRegistry] = value;
-                    break;
-                
-                case OperandType.StackPointer:
-                    _stackPointer = (uint)value;
-                    break;
-                
-                case OperandType.ReturnAddress:
-                    _returnAddress = (uint)value;
-                    break;
-                
-                case OperandType.Literal:
-                    throw new InvalidOperationException();
-                
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
-        }
-
-        private bool TryGetOperandValue(OperandType type, ref float value)
-        {
-            if (type == OperandType.UserRegistry && (value < 0 || value >= _registers.Length))
-                return false;
-            
-            switch (type)
-            {
-                case OperandType.Literal: break;
-                case OperandType.UserRegistry: value = _registers[(int)value]; break;
-                case OperandType.StackPointer: value = _stackPointer; break;
-                case OperandType.ReturnAddress: value = _returnAddress; break;
-                default: throw new ArgumentOutOfRangeException();
-            }
-
-            return true;
-        }
-        
-        public Result Run(Program program, Action<string>? debugCallback = null, DebugData debugData = DebugData.None)
-        {
-            if (_registers.Length < program.RequiredRegisters || _stack.Length < program.RequiredStack)
-                return new Result(Error.RequirementsNotMet);
-            
-            bool breakLoop = false;
-            for (int index = 0; index < program.Instructions.Length && !breakLoop; index++)
-            {
-                Instruction instruction = program.Instructions[index];
-                
-                float leftOperandValue = instruction.LeftOperandValue;
-                float rightOperandValue = instruction.RightOperandValue;
-                
-                if (!TryGetOperandValue(instruction.LeftOperandType, ref leftOperandValue) ||
-                    !TryGetOperandValue(instruction.RightOperandType, ref rightOperandValue) ||
-                    instruction.DestinationRegistry >= _registers.Length)
-                {
-                    return new Result(Error.RegistryOutOfBound, instruction);
-                }
-
-                switch (instruction.Operation)
-                {
-                    case Operation.Nop:
-                        break;
-                    
-                    case Operation.Move:
-                        SetRegistry(ref instruction, leftOperandValue);
-                        break;
-                    
-                    case Operation.Add:
-                        SetRegistry(ref instruction, leftOperandValue + rightOperandValue);
-                        break;
-                    
-                    case Operation.Subtract:
-                        SetRegistry(ref instruction, leftOperandValue - rightOperandValue);
-                        break;
-                    
-                    case Operation.Multiply:
-                        SetRegistry(ref instruction, leftOperandValue * rightOperandValue);
-                        break;
-                    
-                    case Operation.Divide:
-                        if (rightOperandValue == 0)
-                            return new Result(Error.DivisionByZero, instruction);
-                        SetRegistry(ref instruction, leftOperandValue / rightOperandValue);
-                        break;
-                    
-                    case Operation.SquareRoot:
-                        if (leftOperandValue < 0 )
-                            return new Result(Error.NaN, instruction);
-                        SetRegistry(ref instruction, (float)Math.Sqrt(leftOperandValue));
-                        break;
-                    
-                    case Operation.Push:
-                        if (_stackPointer >= _stack.Length)
-                            return new Result(Error.StackOverflow, instruction);
-                        _stack[_stackPointer++] = _registers[instruction.DestinationRegistry];
-                        break;
-                    
-                    case Operation.Pop:
-                        if (_stackPointer == 0)
-                            return new Result(Error.StackOverflow, instruction);
-                        SetRegistry(ref instruction, _stack[--_stackPointer]);
-                        break;
-                    
-                    case Operation.Peek:
-                        if (_stackPointer == 0)
-                            return new Result(Error.StackOverflow, instruction);
-                        SetRegistry(ref instruction, _stack[_stackPointer - 1]);
-                        break;
-                    
-                    case Operation.Assert:
-                        if (Math.Abs(_registers[instruction.DestinationRegistry] - leftOperandValue) > float.Epsilon)
-                            return new Result(Error.AssertFailed, instruction);
-                        break;
-
-                    case Operation.Jump:
-                    {
-                        var foundDestination = -1;
-                        for (var searchIndex = 0; searchIndex < program.Instructions.Length; searchIndex++)
-                        {
-                            if (program.Instructions[searchIndex].Line == (int)leftOperandValue)
-                            {
-                                foundDestination = searchIndex;
-                                break;
-                            }
-                        }
-
-                        if (foundDestination < 0)
-                            return new Result(Error.InvalidJump, instruction);
-                        index = foundDestination - 1;
-                        break;
-                    }
-
-                    case Operation.JumpReturnAddress:
-                    {
-                        var foundDestination = -1;
-                        for (var searchIndex = 0; searchIndex < program.Instructions.Length; searchIndex++)
-                        {
-                            if (program.Instructions[searchIndex].Line == (int)leftOperandValue)
-                            {
-                                foundDestination = searchIndex;
-                                break;
-                            }
-                        }
-
-                        if (foundDestination < 0)
-                            return new Result(Error.InvalidJump, instruction);
-                        index = foundDestination - 1;
-
-                        // Find next instruction (+1 wouldn't ignore blank lines and comments).
-                        for (var searchIndex = 0u; searchIndex < program.Instructions.Length; searchIndex++)
-                        {
-                            if (program.Instructions[searchIndex].Line > instruction.Line + 1)
-                            {
-                                _returnAddress = program.Instructions[searchIndex].Line;
-                                break;
-                            }
-                        }
-
-                        break;
-                    }
-                    
-                    case Operation.Ret:
-                        breakLoop = true;
-                        break;
-
-                    default:
-                        return new Result(Error.OperationNotImplemented, instruction);
-                }
-                
-                if ((debugData & DebugData.RawInstruction) > 0)
-                    debugCallback?.Invoke($"processor > Raw[{instruction.Line:d4}]: " + instruction.RawText);
-                
-                if ((debugData & DebugData.CompiledInstruction) > 0)
-                    debugCallback?.Invoke($"processor > Cmp[{instruction.Line:d4}]: " + instruction);
-                
-                if ((debugData & DebugData.Memory) > 0)
-                    debugCallback?.Invoke($"processor > Mem[{instruction.Line:d4}]: " + DumpMemory());
-                
-                if ((debugData & DebugData.Separator) > 0)
-                    debugCallback?.Invoke("-------------------------------------------------------------------------" +
-                                          "-----------------------------------------------");
-                
-                if (_frequencyHz > 0)
-                    Thread.Sleep(1000 / _frequencyHz);
-            }
-
-            return Result.Success();
-        }
-
-        public float ReadRegistry(int registry)
-        {
-            return registry >= 0 && registry < _registers.Length ? _registers[registry] : float.NaN;
-        }
-
-        public string DumpMemory()
-        {
-            return $"Sp: {_stackPointer:d4} Ra: {_returnAddress:d4} " + 
-                   $"Registries: {string.Join(" ", _registers)} " +
-                   $"Stack: {string.Join(" ", _stack)} ";
-        }
-    }
-
     public class Compiler
     {
         public Result Compile(string input, ref Program program, Action<string>? debugCallback = null, DebugData debugData = DebugData.None)
@@ -448,20 +164,20 @@ namespace Hasm
 
                     if (opl == "ra")
                     {
-                        instruction.LeftOperandType = OperandType.ReturnAddress;
+                        instruction.LeftOperandType = Instruction.OperandType.ReturnAddress;
                     }
                     else if (opl == "sp")
                     {
-                        instruction.LeftOperandType = OperandType.StackPointer;
+                        instruction.LeftOperandType = Instruction.OperandType.StackPointer;
                     }
                     else if (opl[0] == 'r')
                     {
-                        instruction.LeftOperandType = OperandType.UserRegistry;
+                        instruction.LeftOperandType = Instruction.OperandType.UserRegistry;
                         instruction.LeftOperandValue = int.Parse(opl.Substring(1));
                     }
                     else
                     {
-                        instruction.LeftOperandType = OperandType.Literal;
+                        instruction.LeftOperandType = Instruction.OperandType.Literal;
                         instruction.LeftOperandValue = float.Parse(opl, CultureInfo.InvariantCulture);
                     }
                     
@@ -504,15 +220,15 @@ namespace Hasm
                     
                     if (opd == "ra")
                     {
-                        instruction.DestinationRegistryType = OperandType.ReturnAddress;
+                        instruction.DestinationRegistryType = Instruction.OperandType.ReturnAddress;
                     }
                     else if (opd == "sp")
                     {
-                        instruction.DestinationRegistryType = OperandType.StackPointer;
+                        instruction.DestinationRegistryType = Instruction.OperandType.StackPointer;
                     }
                     else
                     {
-                        instruction.DestinationRegistryType = OperandType.UserRegistry;
+                        instruction.DestinationRegistryType = Instruction.OperandType.UserRegistry;
                         instruction.DestinationRegistry = uint.Parse(opd.Substring(1));
                     }
                     
@@ -557,35 +273,35 @@ namespace Hasm
                     
                     if (opd == "ra")
                     {
-                        instruction.DestinationRegistryType = OperandType.ReturnAddress;
+                        instruction.DestinationRegistryType = Instruction.OperandType.ReturnAddress;
                     }
                     else if (opd == "sp")
                     {
-                        instruction.DestinationRegistryType = OperandType.StackPointer;
+                        instruction.DestinationRegistryType = Instruction.OperandType.StackPointer;
                     }
                     else
                     {
-                        instruction.DestinationRegistryType = OperandType.UserRegistry;
+                        instruction.DestinationRegistryType = Instruction.OperandType.UserRegistry;
                         instruction.DestinationRegistry = uint.Parse(opd.Substring(1));
                     }
                     
                     // TODO: Put all that in a function, goddamit!
                     if (opl == "ra")
                     {
-                        instruction.LeftOperandType = OperandType.ReturnAddress;
+                        instruction.LeftOperandType = Instruction.OperandType.ReturnAddress;
                     }
                     else if (opl == "sp")
                     {
-                        instruction.LeftOperandType = OperandType.StackPointer;
+                        instruction.LeftOperandType = Instruction.OperandType.StackPointer;
                     }
                     else if (opl[0] == 'r')
                     {
-                        instruction.LeftOperandType = OperandType.UserRegistry;
+                        instruction.LeftOperandType = Instruction.OperandType.UserRegistry;
                         instruction.LeftOperandValue = int.Parse(opl.Substring(1));
                     }
                     else
                     {
-                        instruction.LeftOperandType = OperandType.Literal;
+                        instruction.LeftOperandType = Instruction.OperandType.Literal;
                         instruction.LeftOperandValue = float.Parse(opl, CultureInfo.InvariantCulture);
                     }
                     
@@ -636,45 +352,45 @@ namespace Hasm
 
                     if (opd == "ra")
                     {
-                        instruction.DestinationRegistryType = OperandType.ReturnAddress;
+                        instruction.DestinationRegistryType = Instruction.OperandType.ReturnAddress;
                     }
                     else if (opd == "sp")
                     {
-                        instruction.DestinationRegistryType = OperandType.StackPointer;
+                        instruction.DestinationRegistryType = Instruction.OperandType.StackPointer;
                     }
                     else
                     {
-                        instruction.DestinationRegistryType = OperandType.UserRegistry;
+                        instruction.DestinationRegistryType = Instruction.OperandType.UserRegistry;
                         instruction.DestinationRegistry = uint.Parse(opd.Substring(1));
                     }
                     
                     if (opl == "ra")
                     {
-                        instruction.LeftOperandType = OperandType.ReturnAddress;
+                        instruction.LeftOperandType = Instruction.OperandType.ReturnAddress;
                     }
                     else if (opl == "sp")
                     {
-                        instruction.LeftOperandType = OperandType.StackPointer;
+                        instruction.LeftOperandType = Instruction.OperandType.StackPointer;
                     }
                     else if (opl[0] == 'r')
                     {
-                        instruction.LeftOperandType = OperandType.UserRegistry;
+                        instruction.LeftOperandType = Instruction.OperandType.UserRegistry;
                         instruction.LeftOperandValue = int.Parse(opl.Substring(1));
                     }
                     else
                     {
-                        instruction.LeftOperandType = OperandType.Literal;
+                        instruction.LeftOperandType = Instruction.OperandType.Literal;
                         instruction.LeftOperandValue = float.Parse(opl, CultureInfo.InvariantCulture);
                     }
 
                     if (opr[0] == 'r')
                     {
-                        instruction.RightOperandType = OperandType.UserRegistry;
+                        instruction.RightOperandType = Instruction.OperandType.UserRegistry;
                         instruction.RightOperandValue = int.Parse(opr.Substring(1));
                     }
                     else
                     {
-                        instruction.RightOperandType = OperandType.Literal;
+                        instruction.RightOperandType = Instruction.OperandType.Literal;
                         instruction.RightOperandValue = float.Parse(opr, CultureInfo.InvariantCulture);
                     }
 
@@ -729,99 +445,6 @@ namespace Hasm
                                       "-----------------------------------------------");
 
             return Result.Success();
-        }
-    }
-    
-    [ProtoBuf.ProtoContract]
-    public class Program
-    {
-        [ProtoBuf.ProtoMember(1)]
-        public uint RequiredRegisters { get; internal set; }
-        [ProtoBuf.ProtoMember(2)]
-        public uint RequiredStack { get; internal set; }
-        
-        [ProtoBuf.ProtoMember(3)]
-        internal Instruction[] Instructions = Array.Empty<Instruction>();
-        
-        public string ToBase64()
-        {
-            if (Instructions == null)
-                return string.Empty;
-
-            using MemoryStream ms = new MemoryStream();
-            ProtoBuf.Serializer.Serialize(ms, this);
-            return Convert.ToBase64String(ms.GetBuffer(), 0, (int)ms.Length);
-        }
-
-        public void FromBase64(string base64)
-        {
-            if (string.IsNullOrEmpty(base64))
-                return;    
-            
-            byte[] bytes = Convert.FromBase64String(base64);
-            using MemoryStream ms = new MemoryStream(bytes);
-            ProtoBuf.Serializer.Deserialize(ms, this);
-        }
-    }
-
-    internal enum Operation
-    {
-        Nop = 0,
-        Move,
-        Add,
-        Subtract,
-        Multiply,
-        Divide,
-        SquareRoot,
-        Push,
-        Pop,
-        Peek,
-        Jump,
-        JumpReturnAddress,
-        
-        Assert = 100,
-        
-        Ret = 1000,
-    }
-
-    internal enum OperandType
-    {
-        Literal,
-        UserRegistry,
-        StackPointer,
-        ReturnAddress
-    }
-    
-    [ProtoBuf.ProtoContract]
-    internal struct Instruction
-    {
-        [ProtoBuf.ProtoMember(1)]
-        internal Operation Operation;
-
-        [ProtoBuf.ProtoMember(2)]
-        internal OperandType DestinationRegistryType;
-        [ProtoBuf.ProtoMember(3)]
-        internal uint DestinationRegistry;
-        
-        [ProtoBuf.ProtoMember(4)]
-        internal OperandType LeftOperandType;
-        [ProtoBuf.ProtoMember(5)]
-        internal float LeftOperandValue;
-        
-        [ProtoBuf.ProtoMember(6)]
-        internal OperandType RightOperandType;
-        [ProtoBuf.ProtoMember(7)]
-        internal float RightOperandValue;
-
-        [ProtoBuf.ProtoMember(8)]
-        internal uint Line;
-        [ProtoBuf.ProtoMember(9)]
-        internal string RawText;
-
-        public override string ToString()
-        {
-            return $"{Operation} {DestinationRegistryType} {DestinationRegistry} {LeftOperandType} {LeftOperandValue} " +
-                   $"{RightOperandType} {RightOperandValue}";
         }
     }
 }
