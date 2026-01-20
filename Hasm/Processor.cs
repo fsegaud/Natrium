@@ -19,7 +19,7 @@ namespace Hasm
             _frequencyHz = frequencyHz;
         }
 
-        private void SetRegistry(ref Instruction instruction, float value)
+        private void SetRegister(ref Instruction instruction, float value)
         {
             switch (instruction.DestinationRegistryType)
             {
@@ -44,7 +44,7 @@ namespace Hasm
         }
         
         // TODO: something smart, not related to Instruction, and more generic.
-        private float GetRegistry(ref Instruction instruction)
+        private float GetRegister(ref Instruction instruction)
         {
             switch (instruction.DestinationRegistryType)
             {
@@ -108,63 +108,63 @@ namespace Hasm
                         break;
                     
                     case Operation.Move:
-                        SetRegistry(ref instruction, leftOperandValue);
+                        SetRegister(ref instruction, leftOperandValue);
                         break;
                     
                     case Operation.Add:
-                        SetRegistry(ref instruction, leftOperandValue + rightOperandValue);
+                        SetRegister(ref instruction, leftOperandValue + rightOperandValue);
                         break;
                     
                     case Operation.Subtract:
-                        SetRegistry(ref instruction, leftOperandValue - rightOperandValue);
+                        SetRegister(ref instruction, leftOperandValue - rightOperandValue);
                         break;
                     
                     case Operation.Multiply:
-                        SetRegistry(ref instruction, leftOperandValue * rightOperandValue);
+                        SetRegister(ref instruction, leftOperandValue * rightOperandValue);
                         break;
                     
                     case Operation.Divide:
                         if (rightOperandValue == 0)
                             return new Result(Error.DivisionByZero, instruction);
-                        SetRegistry(ref instruction, leftOperandValue / rightOperandValue);
+                        SetRegister(ref instruction, leftOperandValue / rightOperandValue);
                         break;
                     
                     case Operation.SquareRoot:
                         if (leftOperandValue < 0 )
                             return new Result(Error.NaN, instruction);
-                        SetRegistry(ref instruction, (float)Math.Sqrt(leftOperandValue));
+                        SetRegister(ref instruction, (float)Math.Sqrt(leftOperandValue));
                         break;
                     
                     case Operation.Increment:
-                        SetRegistry(ref instruction, GetRegistry(ref instruction) + 1f);
+                        SetRegister(ref instruction, GetRegister(ref instruction) + 1f);
                         break;
                     
                     case Operation.Decrement:
-                        SetRegistry(ref instruction, GetRegistry(ref instruction) - 1f);
+                        SetRegister(ref instruction, GetRegister(ref instruction) - 1f);
                         break;
                     
                     case Operation.Equal:
-                        SetRegistry(ref instruction, Math.Abs(leftOperandValue - rightOperandValue) < float.Epsilon ? 1f : 0f);
+                        SetRegister(ref instruction, Math.Abs(leftOperandValue - rightOperandValue) < float.Epsilon ? 1f : 0f);
                         break;
                     
                     case Operation.NotEqual:
-                        SetRegistry(ref instruction, Math.Abs(leftOperandValue - rightOperandValue) < float.Epsilon ? 0f : 1f);
+                        SetRegister(ref instruction, Math.Abs(leftOperandValue - rightOperandValue) < float.Epsilon ? 0f : 1f);
                         break;
                     
                     case Operation.GreaterThan:
-                        SetRegistry(ref instruction, leftOperandValue > rightOperandValue ? 1f : 0f);
+                        SetRegister(ref instruction, leftOperandValue > rightOperandValue ? 1f : 0f);
                         break;
                     
                     case Operation.GreaterThanOrEqual:
-                        SetRegistry(ref instruction, leftOperandValue >= rightOperandValue ? 1f : 0f);
+                        SetRegister(ref instruction, leftOperandValue >= rightOperandValue ? 1f : 0f);
                         break;
                     
                     case Operation.LesserThan:
-                        SetRegistry(ref instruction, leftOperandValue < rightOperandValue ? 1f : 0f);
+                        SetRegister(ref instruction, leftOperandValue < rightOperandValue ? 1f : 0f);
                         break;
                     
                     case Operation.LesserThanOrEqual:
-                        SetRegistry(ref instruction, leftOperandValue <= rightOperandValue ? 1f : 0f);
+                        SetRegister(ref instruction, leftOperandValue <= rightOperandValue ? 1f : 0f);
                         break;
                     
                     case Operation.Push:
@@ -176,13 +176,13 @@ namespace Hasm
                     case Operation.Pop:
                         if (_stackPointer == 0)
                             return new Result(Error.StackOverflow, instruction);
-                        SetRegistry(ref instruction, _stack[--_stackPointer]);
+                        SetRegister(ref instruction, _stack[--_stackPointer]);
                         break;
                     
                     case Operation.Peek:
                         if (_stackPointer == 0)
                             return new Result(Error.StackOverflow, instruction);
-                        SetRegistry(ref instruction, _stack[_stackPointer - 1]);
+                        SetRegister(ref instruction, _stack[_stackPointer - 1]);
                         break;
                     
                     case Operation.Assert:

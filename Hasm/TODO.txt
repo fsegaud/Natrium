@@ -6,5 +6,3 @@
 - memory / arrays
 - test suit
 - gh actions
-
-- SetRegistry -> SetRegister
