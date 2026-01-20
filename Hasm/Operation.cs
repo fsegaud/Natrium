@@ -16,6 +16,12 @@ namespace Hasm
         Peek,
         Jump,
         JumpReturnAddress,
+        Equal,
+        NotEqual,
+        GreaterThan,
+        GreaterThanOrEqual,
+        LesserThan,
+        LesserThanOrEqual,
         
         Assert = 100,
         

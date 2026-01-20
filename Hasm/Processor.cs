@@ -143,6 +143,30 @@ namespace Hasm
                         SetRegistry(ref instruction, GetRegistry(ref instruction) - 1f);
                         break;
                     
+                    case Operation.Equal:
+                        SetRegistry(ref instruction, Math.Abs(leftOperandValue - rightOperandValue) < float.Epsilon ? 1f : 0f);
+                        break;
+                    
+                    case Operation.NotEqual:
+                        SetRegistry(ref instruction, Math.Abs(leftOperandValue - rightOperandValue) < float.Epsilon ? 0f : 1f);
+                        break;
+                    
+                    case Operation.GreaterThan:
+                        SetRegistry(ref instruction, leftOperandValue > rightOperandValue ? 1f : 0f);
+                        break;
+                    
+                    case Operation.GreaterThanOrEqual:
+                        SetRegistry(ref instruction, leftOperandValue >= rightOperandValue ? 1f : 0f);
+                        break;
+                    
+                    case Operation.LesserThan:
+                        SetRegistry(ref instruction, leftOperandValue < rightOperandValue ? 1f : 0f);
+                        break;
+                    
+                    case Operation.LesserThanOrEqual:
+                        SetRegistry(ref instruction, leftOperandValue <= rightOperandValue ? 1f : 0f);
+                        break;
+                    
                     case Operation.Push:
                         if (_stackPointer >= _stack.Length)
                             return new Result(Error.StackOverflow, instruction);

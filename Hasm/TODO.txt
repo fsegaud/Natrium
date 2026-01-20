@@ -1,4 +1,4 @@
-- comparisons / branching
+- branching
 - debug struct instead of string
 - nested jumps (ra stack)
 - multi src file / includes

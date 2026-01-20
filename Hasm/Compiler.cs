@@ -469,6 +469,12 @@ namespace Hasm
                     case "sub": instruction.Operation = Operation.Subtract; break;
                     case "mul": instruction.Operation = Operation.Multiply; break;
                     case "div": instruction.Operation = Operation.Divide; break;
+                    case "eq": instruction.Operation = Operation.Equal; break;
+                    case "neq": instruction.Operation = Operation.NotEqual; break;
+                    case "gt": instruction.Operation = Operation.GreaterThan; break;
+                    case "gte": instruction.Operation = Operation.GreaterThanOrEqual; break;
+                    case "lt": instruction.Operation = Operation.LesserThan; break;
+                    case "lte": instruction.Operation = Operation.LesserThanOrEqual; break;
                     default:
                     {
                         LastError = new Result(Error.OperationNotSupported, instruction);
@@ -587,7 +593,7 @@ namespace Hasm
             internal static readonly Regex SelfOperations = new Regex(@"^(?<opt>nop|ret)$");
             internal static readonly Regex DestinationOperations = new Regex(@"^(?<opt>inc|dec)\s+(?<opd>r\d+\b|ra|sp)$"); 
             internal static readonly Regex UnaryOperations = new Regex(@"^(?<opt>mov|sqrt|assert)\s+(?<opd>r\d+\b|ra|sp)\s+(?<opl>-?\d+[.]?\d*|r\d+\b|ra|sp)$"); 
-            internal static readonly Regex BinaryOperations = new Regex(@"^(?<opt>add|sub|mul|div)\s+(?<opd>r\d+\b|ra|sp)\s+(?<opl>-?\d+[.]?\d*|r\d+\b|ra|sp)\s+(?<opr>-?\d+[.]?\d*|r\d+\b|ra|sp)$"); 
+            internal static readonly Regex BinaryOperations = new Regex(@"^(?<opt>add|sub|mul|div|eq|neq|gt|gte|lt|lte)\s+(?<opd>r\d+\b|ra|sp)\s+(?<opl>-?\d+[.]?\d*|r\d+\b|ra|sp)\s+(?<opr>-?\d+[.]?\d*|r\d+\b|ra|sp)$");
         }
     }
 }
