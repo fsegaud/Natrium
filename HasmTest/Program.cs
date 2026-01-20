@@ -7,16 +7,16 @@ class Program
         string sourceFile = "../../../test.hasm";
         
         Hasm.Compiler compiler = new Hasm.Compiler();
-        Hasm.Program program = new Hasm.Program();
-        var result = compiler.Compile(File.ReadAllText(sourceFile), ref program, DebugCallback, Hasm.DebugData.None);
-        if (result.Error != Hasm.Error.Success)
+        Hasm.Program? program = compiler.Compile(File.ReadAllText(sourceFile));
+        if (program == null)
         {
-            Console.Error.WriteLine($"Compilation Error: {result.Error} ({result.Error:D}) " +
-                                    $"'{result.RawInstruction}' at line {result.Line}");
+            Hasm.Result error = compiler.LastError;
+            Console.Error.WriteLine($"Compilation Error: {error.Error} ({error.Error:D}) '{error.RawInstruction}' at line {error.Line}");
+            return;
         }
-
+        
         Hasm.Processor processor = new Hasm.Processor(4, 8, 100);
-        result = processor.Run(program, DebugCallback, Hasm.DebugData.All);
+        Hasm.Result result = processor.Run(program, DebugCallback, Hasm.DebugData.All);
         if (result.Error != Hasm.Error.Success)
         {
             Console.Error.WriteLine(
