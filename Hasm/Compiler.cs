@@ -601,7 +601,7 @@ namespace Hasm
         private static class RegexCollection
         {
             internal static readonly Regex EmptyLine = new Regex(@"^[\s\t]*$");
-            internal static readonly Regex Comments = new Regex(@".*(?<com>[;#].*)");
+            internal static readonly Regex Comments = new Regex(@"^[^;#]*(?<com>[;#]+.*)$");
             internal static readonly Regex Requirements = new Regex(@"^@req:(?<type>r|s|d)(?<val>\d+)"); 
             
             internal static readonly Regex Labels = new Regex(@"^(?<label>[A-Za-z_]+)\s*:$"); 
