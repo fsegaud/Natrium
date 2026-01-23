@@ -1,14 +1,16 @@
 namespace Hasm
 {
-    [System.Flags]
-    public enum DebugData
+    public struct DebugData
     {
-        None                = 0,
-        Binary              = 1 << 0,
-        RawInstruction      = 1 << 1,
-        CompiledInstruction = 1 << 2,
-        Memory              = 1 << 3,
-        Separator           = 1 << 30,
-        All                 = ~0
+        public uint Line;
+        public string RawInstruction;
+        public double[] Registers;
+        public double[] Stack;
+        public uint StackPointer;
+        public uint ReturnAddress;
+#if HASM_FEATURE_MEMORY 
+        public double[] Memory;
+        public uint[] MemoryBlocks;
+#endif
     }
 }

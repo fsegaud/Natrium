@@ -13,24 +13,21 @@ namespace Hasm
         
         private string[] _lines = {};
         private bool[] _skipLine = {};
-
-        private DebugData _debugData;
-        private Action<string>? _debugCallback;
         
         public  Result LastError { get; private set; }
         
-        public Program? Compile(string input, Action<string>? debugCallback = null, DebugData debugData = DebugData.None)
+        public Program? Compile(string input, BuildConfig buildConfig = BuildConfig.Debug, Action<string>? debugCallback = null)
         {
-            _debugData = debugData;
-            _debugCallback = debugCallback;
-            
             _lines = input.Split('\n');
             _skipLine = new bool[_lines.Length];
             _instructions.Clear();
             _labelToLine.Clear();
 
-            Program program = new Program();
-            
+            Program program = new Program
+            {
+                BuildConfig = buildConfig
+            };
+
             // First pass.
             bool succeed = true;
             for (var index = 0u; index < _lines.Length && succeed; index++)
@@ -70,14 +67,15 @@ namespace Hasm
             
             // Post-compile.
             program.Instructions = _instructions.ToArray();
+            if (buildConfig == BuildConfig.Release)
+            {
+                for (var index = 0; index < program.Instructions.Length; index++)
+                {
+                    program.Instructions[index].RawText = string.Empty;
+                }
+            }
+            
             LastError = Result.Success();
-            
-            if ((debugData & DebugData.Binary) > 0)
-                debugCallback?.Invoke("compiler > " + program.ToBase64());
-            
-            if ((debugData & DebugData.Separator) > 0)
-                debugCallback?.Invoke("-------------------------------------------------------------------------" +
-                                      "-----------------------------------------------");
             
             return program;
         }
@@ -224,7 +222,6 @@ namespace Hasm
 
                 _skipLine[index] = true;
                 _instructions.Add(instruction);
-                LogDebug(instruction);
             }
 
             return true;
@@ -278,7 +275,6 @@ namespace Hasm
                 
                 _skipLine[index] = true;
                 _instructions.Add(instruction);
-                LogDebug(instruction);
             }
 
             return true;
@@ -382,7 +378,6 @@ namespace Hasm
                 
                 _skipLine[index] = true;
                 _instructions.Add(instruction);
-                LogDebug(instruction);
             }
 
             return true;
@@ -431,7 +426,6 @@ namespace Hasm
                     
                 _skipLine[index] = true;
                 _instructions.Add(instruction);
-                LogDebug(instruction);
             }
 
             return true;
@@ -479,7 +473,6 @@ namespace Hasm
                 
                 _skipLine[index] = true;
                 _instructions.Add(instruction);
-                LogDebug(instruction);
             }
 
             return true;
@@ -568,7 +561,6 @@ namespace Hasm
                 
                 _skipLine[index] = true;
                 _instructions.Add(instruction);
-                LogDebug(instruction);
             }
 
             return true;
@@ -656,7 +648,6 @@ namespace Hasm
 
                 _skipLine[index] = true;
                 _instructions.Add(instruction);
-                LogDebug(instruction);
             }
 
             return true;
@@ -690,7 +681,6 @@ namespace Hasm
                 
                 _skipLine[index] = true;
                 _instructions.Add(instruction);
-                LogDebug(instruction);
             }
             else if (matchFree.Success)
             {
@@ -707,7 +697,6 @@ namespace Hasm
                 
                 _skipLine[index] = true;
                 _instructions.Add(instruction);
-                LogDebug(instruction);
             }
 
             return true;
@@ -727,7 +716,6 @@ namespace Hasm
                 };
                 
                 _instructions.Add(instruction);
-                LogDebug(instruction);
             }
         }
 
@@ -743,19 +731,6 @@ namespace Hasm
             }
 
             return true;
-        }
-        
-        private void LogDebug(Instruction instruction)
-        {
-            if ((_debugData & DebugData.RawInstruction) > 0)
-                _debugCallback?.Invoke("compiler > " + instruction.RawText);
-                    
-            if ((_debugData & DebugData.CompiledInstruction) > 0)
-                _debugCallback?.Invoke("compiler > " + instruction);
-                    
-            if ((_debugData & DebugData.Separator) > 0)
-                _debugCallback?.Invoke("-------------------------------------------------------------------------" +
-                                       "-----------------------------------------------");
         }
 
         private static class RegexCollection

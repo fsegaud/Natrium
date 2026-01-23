@@ -14,7 +14,7 @@ main:
     push r1
     
     # call function
-    jra f_add
+    jal f_add
     
     # pop and test result
     pop r0

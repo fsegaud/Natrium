@@ -264,7 +264,7 @@ namespace Hasm
             return true;
         }
         
-        public bool Run(Program program, Action<string>? debugCallback = null, DebugData debugData = DebugData.None)
+        public bool Run(Program program, Action<DebugData>? debugCallback = null)
         {
             _stackPointer = 0;
             _returnAddress = 0;
@@ -621,18 +621,8 @@ namespace Hasm
                 if (LastError.Error != Error.Success)
                     return false;
                 
-                if ((debugData & DebugData.RawInstruction) > 0)
-                    debugCallback?.Invoke($"processor > Raw[{instruction.Line:d4}]: " + instruction.RawText);
-                
-                if ((debugData & DebugData.CompiledInstruction) > 0)
-                    debugCallback?.Invoke($"processor > Cmp[{instruction.Line:d4}]: " + instruction);
-                
-                if ((debugData & DebugData.Memory) > 0)
-                    debugCallback?.Invoke($"processor > Mem[{instruction.Line:d4}]: " + DumpMemory());
-                
-                if ((debugData & DebugData.Separator) > 0)
-                    debugCallback?.Invoke("-------------------------------------------------------------------------" +
-                                          "-----------------------------------------------");
+                if (debugCallback != null)
+                    debugCallback.Invoke(GenerateDebugData(ref instruction));
                 
                 if (_frequencyHz > 0)
                     Thread.Sleep(1000 / _frequencyHz);
@@ -646,17 +636,34 @@ namespace Hasm
             return registry >= 0 && registry < _registers.Length ? _registers[registry] : double.NaN;
         }
 
-        public string DumpMemory()
+        internal DebugData GenerateDebugData(ref Instruction instruction)
         {
-            return $"Sp: {_stackPointer:d4} Ra: {_returnAddress:d4} " +
-                   $"Registries: {string.Join(" ", _registers)} " +
-                   $"Stack: {string.Join(" ", _stack)} "
-#if HASM_FEATURE_MEMORY
-                   + "\n " +
-                   $"Mem: {string.Join(" ", _memory)} \n" +
-                   $"MemBlocks: {string.Join(" ", _memoryBlocks)}"
-#endif
-                ;
+            DebugData data;
+            
+            // Instruction data.
+            
+            data.Line = instruction.Line;
+            data.RawInstruction = instruction.RawText;
+            
+            // Program state.
+            
+            data.StackPointer = _stackPointer;
+            data.ReturnAddress = _returnAddress;
+                
+            data.Registers = new double[_registers.Length];
+            _registers.CopyTo(data.Registers, 0);
+            
+            data.Stack = new double[_stack.Length];
+            _stack.CopyTo(data.Stack, 0);
+            
+#if HASM_FEATURE_MEMORY 
+            data.Memory = new double[_memory.Length];
+            _memory.CopyTo(data.Memory, 0);
+            
+            data.MemoryBlocks = new uint[_memoryBlocks.Length];
+            _memoryBlocks.CopyTo(data.MemoryBlocks, 0);
+#endif            
+            return data;
         }
     }
 }

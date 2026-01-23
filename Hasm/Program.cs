@@ -7,13 +7,15 @@ namespace Hasm
     public class Program
     {
         [ProtoBuf.ProtoMember(1)]
-        public uint RequiredRegisters { get; internal set; }
+        public BuildConfig BuildConfig;
         [ProtoBuf.ProtoMember(2)]
-        public uint RequiredStack { get; internal set; }
+        public uint RequiredRegisters { get; internal set; }
         [ProtoBuf.ProtoMember(3)]
+        public uint RequiredStack { get; internal set; }
+        [ProtoBuf.ProtoMember(4)]
         public uint RequiredDevices { get; internal set; }
         
-        [ProtoBuf.ProtoMember(4)]
+        [ProtoBuf.ProtoMember(5)]
         internal Instruction[] Instructions = Array.Empty<Instruction>();
         
         public string ToBase64()
