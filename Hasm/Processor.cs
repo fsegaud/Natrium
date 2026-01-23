@@ -1,5 +1,4 @@
 using System;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 
@@ -171,7 +170,8 @@ namespace Hasm
                 }
                     
                 case Instruction.OperandType.Literal:
-                    throw new InvalidOperationException();
+                    value = instruction.Destination;
+                    break;
                 
                 default:
                     throw new NotImplementedException();
@@ -221,6 +221,44 @@ namespace Hasm
                 }
                 
                 default: throw new ArgumentOutOfRangeException();
+            }
+
+            return true;
+        }
+
+        // TODO: Make static?
+        private bool TryResolveJump(Program program, ref Instruction instruction, out int destinationIndex, out uint returnAddress)
+        {
+            destinationIndex = 0;
+            returnAddress = 0;
+            
+            if (!TryGetDestination(ref instruction, out double destinationValue))
+                return false;
+
+            destinationIndex = -1;
+            for (var searchIndex = 0; searchIndex < program.Instructions.Length; searchIndex++)
+            {
+                if (program.Instructions[searchIndex].Line == (uint)destinationValue)
+                {
+                    destinationIndex = searchIndex;
+                    break;
+                }
+            }
+
+            if (destinationIndex < 0)
+            {
+                LastError = new Result(Error.InvalidJump, instruction);
+                return false;
+            }
+            
+            // Find next instruction (+1 wouldn't ignore blank lines and comments).
+            for (var searchIndex = 0u; searchIndex < program.Instructions.Length; searchIndex++)
+            {
+                if (program.Instructions[searchIndex].Line > instruction.Line)
+                {
+                    returnAddress = program.Instructions[searchIndex].Line;
+                    break;
+                }
             }
 
             return true;
@@ -376,57 +414,122 @@ namespace Hasm
 
                     case Operation.Jump:
                     {
-                        var foundDestination = -1;
-                        for (var searchIndex = 0; searchIndex < program.Instructions.Length; searchIndex++)
-                        {
-                            if (program.Instructions[searchIndex].Line == (int)leftOperandValue)
-                            {
-                                foundDestination = searchIndex;
-                                break;
-                            }
-                        }
-
-                        if (foundDestination < 0)
+                        if (!TryResolveJump(program, ref instruction, out int destinationIndex, out uint returnAddress))
                         {
                             LastError = new Result(Error.InvalidJump, instruction);
                             return false;
                         }
-                        index = foundDestination - 1;
+                        
+                        index = destinationIndex - 1;
                         break;
                     }
 
                     case Operation.JumpReturnAddress:
                     {
-                        var foundDestination = -1;
-                        for (var searchIndex = 0; searchIndex < program.Instructions.Length; searchIndex++)
-                        {
-                            if (program.Instructions[searchIndex].Line == (int)leftOperandValue)
-                            {
-                                foundDestination = searchIndex;
-                                break;
-                            }
-                        }
-
-                        if (foundDestination < 0)
+                        if (!TryResolveJump(program, ref instruction, out int destinationIndex, out uint returnAddress))
                         {
                             LastError = new Result(Error.InvalidJump, instruction);
                             return false;
                         }
-                        index = foundDestination - 1;
+                        
+                        index = destinationIndex - 1;
+                        if (returnAddress > 0)
+                            _returnAddress = returnAddress;
+                        
+                        break;
+                    }
 
-                        // Find next instruction (+1 wouldn't ignore blank lines and comments).
-                        for (var searchIndex = 0u; searchIndex < program.Instructions.Length; searchIndex++)
+                    case Operation.BranchEqual:
+                    case Operation.BranchEqualReturnAddress:
+                    case Operation.BranchNotEqual:
+                    case Operation.BranchNotEqualReturnAddress:
+                    case Operation.BranchGreaterThan:
+                    case Operation.BranchGreaterThanReturnAddress:
+                    case Operation.BranchGreaterThanOrEqual:
+                    case Operation.BranchGreaterThanOrEqualReturnAddress:
+                    case Operation.BranchLesserThan:
+                    case Operation.BranchLesserThanReturnAddress:
+                    case Operation.BranchLesserThanOrEqual:
+                    case Operation.BranchLesserThanOrEqualReturnAddress:
+                    {
+                        // Resolve jump.
+                        if (!TryResolveJump(program, ref instruction, out int destinationIndex, out uint returnAddress))
                         {
-                            if (program.Instructions[searchIndex].Line > instruction.Line + 1)
-                            {
-                                _returnAddress = program.Instructions[searchIndex].Line;
+                            LastError = new Result(Error.InvalidJump, instruction);
+                            return false;
+                        }
+                        
+                        // Check condition.
+                        bool conditionMet = false;
+                        switch (instruction.Operation)
+                        {
+                            case Operation.BranchEqual:
+                                conditionMet = Math.Abs(leftOperandValue - rightOperandValue) < double.Epsilon;
+                                returnAddress = 0;
+                                 break;
+                            
+                            case Operation.BranchEqualReturnAddress:
+                                conditionMet = Math.Abs(leftOperandValue - rightOperandValue) < double.Epsilon;
                                 break;
-                            }
+                            
+                            case Operation.BranchNotEqual:
+                                conditionMet = Math.Abs(leftOperandValue - rightOperandValue) >= double.Epsilon;
+                                returnAddress = 0;
+                                break;
+                            
+                            case Operation.BranchNotEqualReturnAddress:
+                                conditionMet = Math.Abs(leftOperandValue - rightOperandValue) >= double.Epsilon;
+                                break;
+                            
+                            case Operation.BranchGreaterThan:
+                                conditionMet = leftOperandValue > rightOperandValue;
+                                returnAddress = 0;
+                                break;
+                            
+                            case Operation.BranchGreaterThanReturnAddress:
+                                conditionMet = leftOperandValue > rightOperandValue;
+                                break;
+
+                            case Operation.BranchGreaterThanOrEqual:
+                                conditionMet = leftOperandValue >= rightOperandValue;
+                                returnAddress = 0;
+                                break;
+                            
+                            case Operation.BranchGreaterThanOrEqualReturnAddress:
+                                conditionMet = leftOperandValue >= rightOperandValue;
+                                break;
+
+                            case Operation.BranchLesserThan:
+                                conditionMet = leftOperandValue < rightOperandValue;
+                                returnAddress = 0;
+                                break;
+                            
+                            case Operation.BranchLesserThanReturnAddress:
+                                conditionMet = leftOperandValue < rightOperandValue;
+                                break;
+
+                            case Operation.BranchLesserThanOrEqual:
+                                conditionMet = leftOperandValue <= rightOperandValue;
+                                returnAddress = 0;
+                                break;
+                            
+                            case Operation.BranchLesserThanOrEqualReturnAddress:
+                                conditionMet = leftOperandValue <= rightOperandValue;
+                                break;
+
+                        }
+                        
+                        // Apply jump if needed;
+                        if (conditionMet)
+                        {
+                            index = destinationIndex - 1;
+                            if (returnAddress > 0)
+                                _returnAddress = returnAddress;
                         }
 
                         break;
                     }
-                    
+
 #if HASM_FEATURE_MEMORY
                     case Operation.AllocateMemory:
                     {

@@ -1,6 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
-using Hasm;
 
 namespace HasmTest;
 
@@ -12,7 +11,7 @@ class Program
         string sourceFile = "../../../test.hasm";
         
         Hasm.Compiler compiler = new Hasm.Compiler();
-        Hasm.Program? program = compiler.Compile(File.ReadAllText(sourceFile));
+        Hasm.Program? program = compiler.Compile(File.ReadAllText(sourceFile), DebugCallback, Hasm.DebugData.Binary);
         if (program == null)
         {
             Hasm.Result error = compiler.LastError;

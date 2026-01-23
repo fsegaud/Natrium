@@ -49,6 +49,7 @@ namespace Hasm
             {
                 succeed &= Check(ParseLabels(index));
                 succeed &= Check(ParseJump(index));
+                succeed &= Check(ParseBranching(index));
                 succeed &= Check(ParseStack(index));
                 succeed &= Check(ParseSelfOperations(index));
                 succeed &= Check(ParseDestinationOperations(index));
@@ -239,7 +240,7 @@ namespace Hasm
             if (match.Success)
             {
                 string opt = match.Groups["opt"].Value;
-                string opl = match.Groups["opl"].Value;
+                string opd = match.Groups["opd"].Value;
                 
                 Instruction instruction = default;
                 instruction.RawText = _lines[index];
@@ -248,7 +249,7 @@ namespace Hasm
                 switch (opt)
                 {
                     case "j": instruction.Operation = Operation.Jump; break;
-                    case "jra": instruction.Operation = Operation.JumpReturnAddress; break;
+                    case "jal": instruction.Operation = Operation.JumpReturnAddress; break;
                     default:
                     {
                         LastError = new Result(Error.OperationNotSupported, instruction);
@@ -256,6 +257,91 @@ namespace Hasm
                     }
                 }
 
+                if (opd == "ra")
+                {
+                    instruction.DestinationRegistryType = Instruction.OperandType.ReturnAddress;
+                }
+                else if (opd == "sp")
+                {
+                    instruction.DestinationRegistryType = Instruction.OperandType.StackPointer;
+                }
+                else if (opd[0] == 'r')
+                {
+                    instruction.DestinationRegistryType = Instruction.OperandType.UserRegister;
+                    instruction.Destination = uint.Parse(opd.Substring(1));
+                }
+                else
+                {
+                    instruction.DestinationRegistryType = Instruction.OperandType.Literal;
+                    instruction.Destination = uint.Parse(opd, CultureInfo.InvariantCulture);
+                }
+                
+                _skipLine[index] = true;
+                _instructions.Add(instruction);
+                LogDebug(instruction);
+            }
+
+            return true;
+        }
+        
+        private bool ParseBranching(uint index)
+        {
+            if (_skipLine[index])
+                    return true;
+
+            // TODO: replace opl with new opd (registry type).
+            Match match = RegexCollection.BranchingOperations.Match(_lines[index]);
+            if (match.Success)
+            {
+                string opt = match.Groups["opt"].Value;
+                string opd = match.Groups["opd"].Value;
+                string opl = match.Groups["opl"].Value;
+                string opr = match.Groups["opr"].Value;
+                
+                Instruction instruction = default;
+                instruction.RawText = _lines[index];
+                instruction.Line = index + 1;
+                
+                switch (opt)
+                {
+                    case "beq": instruction.Operation = Operation.BranchEqual; break;
+                    case "beqal": instruction.Operation = Operation.BranchEqualReturnAddress; break;
+                    case "bneq": instruction.Operation = Operation.BranchNotEqual; break;
+                    case "bneqal": instruction.Operation = Operation.BranchNotEqualReturnAddress; break;
+                    case "bgt": instruction.Operation = Operation.BranchGreaterThan; break;
+                    case "bgtal": instruction.Operation = Operation.BranchGreaterThanReturnAddress; break;
+                    case "bgte": instruction.Operation = Operation.BranchGreaterThanOrEqual; break;
+                    case "bgteal": instruction.Operation = Operation.BranchGreaterThanOrEqualReturnAddress; break;
+                    case "blt": instruction.Operation = Operation.BranchLesserThan; break;
+                    case "bltal": instruction.Operation = Operation.BranchLesserThanReturnAddress; break;
+                    case "blte": instruction.Operation = Operation.BranchLesserThanOrEqual; break;
+                    case "blteal": instruction.Operation = Operation.BranchLesserThanOrEqualReturnAddress; break;
+                    default:
+                    {
+                        LastError = new Result(Error.OperationNotSupported, instruction);
+                        return false;
+                    }
+                }
+
+                if (opd == "ra")
+                {
+                    instruction.DestinationRegistryType = Instruction.OperandType.ReturnAddress;
+                }
+                else if (opd == "sp")
+                {
+                    instruction.DestinationRegistryType = Instruction.OperandType.StackPointer;
+                }
+                else if (opd[0] == 'r')
+                {
+                    instruction.DestinationRegistryType = Instruction.OperandType.UserRegister;
+                    instruction.Destination = uint.Parse(opd.Substring(1));
+                }
+                else
+                {
+                    instruction.DestinationRegistryType = Instruction.OperandType.Literal;
+                    instruction.Destination= uint.Parse(opd, CultureInfo.InvariantCulture);
+                }
+                
                 if (opl == "ra")
                 {
                     instruction.LeftOperandType = Instruction.OperandType.ReturnAddress;
@@ -273,6 +359,25 @@ namespace Hasm
                 {
                     instruction.LeftOperandType = Instruction.OperandType.Literal;
                     instruction.LeftOperandValue = float.Parse(opl, CultureInfo.InvariantCulture);
+                }
+
+                if (opr == "ra")
+                {
+                    instruction.RightOperandType = Instruction.OperandType.ReturnAddress;
+                }
+                else if (opr == "sp")
+                {
+                    instruction.RightOperandType = Instruction.OperandType.StackPointer;
+                }
+                else if (opr[0] == 'r')
+                {
+                    instruction.RightOperandType = Instruction.OperandType.UserRegister;
+                    instruction.RightOperandValue = int.Parse(opr.Substring(1));
+                }
+                else
+                {
+                    instruction.RightOperandType = Instruction.OperandType.Literal;
+                    instruction.RightOperandValue = float.Parse(opr, CultureInfo.InvariantCulture);
                 }
                 
                 _skipLine[index] = true;
@@ -660,10 +765,11 @@ namespace Hasm
             internal static readonly Regex Requirements = new Regex(@"^@req:(?<type>r|s|d)(?<val>\d+)"); 
             
             internal static readonly Regex Labels = new Regex(@"^(?<label>[A-Za-z_]+)\s*:$"); 
-            internal static readonly Regex LabelJumps = new Regex(@"^(?<opt>j|jra)\s+(?<label>[A-Za-z_]+\b)$");
+            internal static readonly Regex LabelJumps = new Regex(@"^(?<opt>j|jal)\s+(?<label>[A-Za-z_]+\b)$");
             internal static readonly Regex LabelRegisters = new Regex(@"^ra|r\d+$");
             
-            internal static readonly Regex JumpOperations = new Regex(@"^(?<opt>j|jra)\s+(?<opl>r\d+\b|ra|sp|[1-9]\d*\b)$");
+            internal static readonly Regex JumpOperations = new Regex(@"^(?<opt>j|jal)\s+(?<opd>r\d+\b|ra|[1-9]\d*\b)$");
+            internal static readonly Regex BranchingOperations = new Regex(@"^(?<opt>beq|beqal|bneq|bneqal|bgt|bgtal|bgte|bgteal|blt|bltal|blte|blteal)\s+(?<opd>r\d+\b|ra|sp|[1-9]\d*\b)\s+(?<opl>-?\d+[.]?\d*|r\d+\b|ra|sp)\s+(?<opr>-?\d+[.]?\d*|r\d+\b|ra|sp)$");
             internal static readonly Regex StackOperations = new Regex(@"^(?<opt>push|pop|peek)\s+(?<opd>r\d+\b|ra|sp)$");
             internal static readonly Regex SelfOperations = new Regex(@"^(?<opt>nop|ret)$");
             internal static readonly Regex DestinationOperations = new Regex(@"^(?<opt>inc|dec)\s+(?<opd>r\d+\b|ra|sp)$"); 
