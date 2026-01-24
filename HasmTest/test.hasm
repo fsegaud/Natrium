@@ -2,8 +2,8 @@
 ##    EEPROM Device Test    ##
 ##############################
 
-@req    registers   4
-@req    devices     1
+@req    registers   0x4
+@req    devices     0x1
 
 alias   $eeprom_i   d0.0
 alias   $eeprom_v   d0.1
@@ -27,3 +27,4 @@ rd      r2          $eeprom_v
 assert  r2          $i
 
 ret
+

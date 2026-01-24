@@ -115,6 +115,7 @@ namespace Hasm
                     break;
                 }
                 
+                case Instruction.OperandType.HexLiteral:
                 case Instruction.OperandType.Literal:
                     throw new InvalidOperationException();
                 
@@ -174,6 +175,7 @@ namespace Hasm
                     break;
                 }
                     
+                case Instruction.OperandType.HexLiteral:
                 case Instruction.OperandType.Literal:
                     value = instruction.Destination;
                     break;
@@ -190,6 +192,7 @@ namespace Hasm
             switch (type)
             {
                 case Instruction.OperandType.Literal: break;
+                case Instruction.OperandType.HexLiteral: value = (int)value; break;
                 case Instruction.OperandType.StackPointer: value = _stackPointer; break;
                 case Instruction.OperandType.ReturnAddress: value = _returnAddress; break;
                 case Instruction.OperandType.UserRegister:

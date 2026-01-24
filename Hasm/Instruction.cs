@@ -6,6 +6,7 @@ namespace Hasm
         internal enum OperandType
         {
             Literal,
+            HexLiteral,
             UserRegister,
             StackPointer,
             ReturnAddress,

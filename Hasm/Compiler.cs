@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Net;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 
@@ -157,7 +158,9 @@ namespace Hasm
             if (match.Success)
             {
                 string type =  match.Groups["type"].Value;
-                uint value = uint.Parse(match.Groups["val"].Value);
+                uint value = match.Groups["val"].Value.StartsWith("0x") ? 
+                    uint.Parse(match.Groups["val"].Value.Substring(2), NumberStyles.HexNumber) : 
+                    uint.Parse(match.Groups["val"].Value);
                     
                 switch (type)
                 {
@@ -295,6 +298,11 @@ namespace Hasm
                     instruction.DestinationRegistryType = Instruction.OperandType.UserRegister;
                     instruction.Destination = uint.Parse(opd.Substring(1));
                 }
+                else if (opd.StartsWith("0x"))
+                {
+                    instruction.DestinationRegistryType = Instruction.OperandType.HexLiteral;
+                    instruction.Destination = uint.Parse(opd.Substring(2), NumberStyles.HexNumber);
+                }
                 else
                 {
                     instruction.DestinationRegistryType = Instruction.OperandType.Literal;
@@ -360,6 +368,11 @@ namespace Hasm
                     instruction.DestinationRegistryType = Instruction.OperandType.UserRegister;
                     instruction.Destination = uint.Parse(opd.Substring(1));
                 }
+                else if (opd.StartsWith("0x"))
+                {
+                    instruction.DestinationRegistryType = Instruction.OperandType.HexLiteral;
+                    instruction.Destination = uint.Parse(opd.Substring(2), NumberStyles.HexNumber);
+                }
                 else
                 {
                     instruction.DestinationRegistryType = Instruction.OperandType.Literal;
@@ -379,6 +392,11 @@ namespace Hasm
                     instruction.LeftOperandType = Instruction.OperandType.UserRegister;
                     instruction.LeftOperandValue = int.Parse(opl.Substring(1));
                 }
+                else if (opl.StartsWith("0x"))
+                {
+                    instruction.LeftOperandType = Instruction.OperandType.HexLiteral;
+                    instruction.LeftOperandValue = int.Parse(opl.Substring(2), NumberStyles.HexNumber);
+                }
                 else
                 {
                     instruction.LeftOperandType = Instruction.OperandType.Literal;
@@ -397,6 +415,11 @@ namespace Hasm
                 {
                     instruction.RightOperandType = Instruction.OperandType.UserRegister;
                     instruction.RightOperandValue = int.Parse(opr.Substring(1));
+                }
+                else if (opr.StartsWith("0x"))
+                {
+                    instruction.RightOperandType = Instruction.OperandType.HexLiteral;
+                    instruction.RightOperandValue = int.Parse(opr.Substring(2), NumberStyles.HexNumber);
                 }
                 else
                 {
@@ -574,12 +597,17 @@ namespace Hasm
                     instruction.LeftOperandType = Instruction.OperandType.UserRegister;
                     instruction.LeftOperandValue = int.Parse(opl.Substring(1));
                 }
-                else if (opl.StartsWith("d"))
+                else if (opl[0] == 'd')
                 {
                     uint deviceSlot = uint.Parse(opl.Substring(1, opl.IndexOf(".", StringComparison.InvariantCulture) - 1));
                     uint deviceRegister = uint.Parse(opl.Substring(opl.IndexOf(".", StringComparison.InvariantCulture) + 1));
                     instruction.LeftOperandType = Instruction.OperandType.DeviceRegister;
                     instruction.LeftOperandValue = deviceSlot << 16 | deviceRegister; // TODO: Check overflow
+                }
+                else if (opl.StartsWith("0x"))
+                {
+                    instruction.LeftOperandType = Instruction.OperandType.HexLiteral;
+                    instruction.LeftOperandValue = int.Parse(opl.Substring(2), NumberStyles.HexNumber);
                 }
                 else
                 {
@@ -657,6 +685,11 @@ namespace Hasm
                     instruction.LeftOperandType = Instruction.OperandType.UserRegister;
                     instruction.LeftOperandValue = int.Parse(opl.Substring(1));
                 }
+                else if (opl.StartsWith("0x"))
+                {
+                    instruction.LeftOperandType = Instruction.OperandType.HexLiteral;
+                    instruction.LeftOperandValue = int.Parse(opl.Substring(2), NumberStyles.HexNumber);
+                }
                 else
                 {
                     instruction.LeftOperandType = Instruction.OperandType.Literal;
@@ -667,6 +700,11 @@ namespace Hasm
                 {
                     instruction.RightOperandType = Instruction.OperandType.UserRegister;
                     instruction.RightOperandValue = int.Parse(opr.Substring(1));
+                }
+                else if (opr.StartsWith("0x"))
+                {
+                    instruction.RightOperandType = Instruction.OperandType.HexLiteral;
+                    instruction.RightOperandValue = int.Parse(opr.Substring(2), NumberStyles.HexNumber);
                 }
                 else
                 {
@@ -743,6 +781,11 @@ namespace Hasm
                     uint deviceRegister = uint.Parse(opl.Substring(opl.IndexOf(".", StringComparison.InvariantCulture) + 1));
                     instruction.LeftOperandType = Instruction.OperandType.DeviceRegister;
                     instruction.LeftOperandValue = deviceSlot << 16 | deviceRegister; // TODO: Check overflow
+                }
+                else if (opl.StartsWith("0x"))
+                {
+                    instruction.LeftOperandType = Instruction.OperandType.HexLiteral;
+                    instruction.LeftOperandValue = int.Parse(opl.Substring(2), NumberStyles.HexNumber);
                 }
                 else
                 {
@@ -842,21 +885,21 @@ namespace Hasm
             internal static readonly Regex EmptyLine = new Regex(@"^[\s\t]*$");
             internal static readonly Regex MultipleSpaces = new Regex(@"\s\s+");
             internal static readonly Regex Comments = new Regex(@"^[^#]*(?<com>#+.*)$");
-            internal static readonly Regex Aliases = new Regex(@"^alias\s+(?<alias>\$[A-Za-z0-9_]+)\s(?<dest>(?:r\d+|d\d+\.\d+|-?\d+[.]?\d*|r\d+\b))$");
-            internal static readonly Regex Requirements = new Regex(@"^@req\s+(?<type>registers|stack|devices|memory)\s+(?<val>\d+)$"); 
-            internal static readonly Regex Labels = new Regex(@"^(?<label>[A-Za-z0-9_]+)\s*:$"); 
-            internal static readonly Regex LabelJumps = new Regex(@"^(?<opt>j|jal|beq|beqal|bneq|bneqal|bgt|bgtal|bgte|bgteal|blt|bltal|blte|blteal)\s+(?<label>[A-Za-z0-9_]+\b).*$");
+            internal static readonly Regex Aliases = new Regex(@"^alias\s+(?<alias>\$[A-Za-z0-9_]+)\s(?<dest>(?:r\d+|d\d+\.\d+|-?\d+[.]?\d*|r\d+\b|0x[0-9a-fA-F]+\b))$");
+            internal static readonly Regex Requirements = new Regex(@"^@req\s+(?<type>registers|stack|devices|memory)\s+(?<val>\d+|0x[0-9a-fA-F]+\b)$"); 
+            internal static readonly Regex Labels = new Regex(@"^(?<label>[A-Za-z_][A-Za-z0-9_]+)\s*:$"); 
+            internal static readonly Regex LabelJumps = new Regex(@"^(?<opt>j|jal|beq|beqal|bneq|bneqal|bgt|bgtal|bgte|bgteal|blt|bltal|blte|blteal)\s+(?<label>[A-Za-z_][A-Za-z0-9_]+\b).*$");
             internal static readonly Regex LabelRegisters = new Regex(@"^ra|r\d+$");
             
-            internal static readonly Regex JumpOperations = new Regex(@"^(?<opt>j|jal)\s+(?<opd>r\d+\b|ra|[1-9]\d*\b)$");
-            internal static readonly Regex BranchingOperations = new Regex(@"^(?<opt>beq|beqal|bneq|bneqal|bgt|bgtal|bgte|bgteal|blt|bltal|blte|blteal)\s+(?<opd>r\d+\b|ra|sp|[1-9]\d*\b)\s+(?<opl>-?\d+[.]?\d*|r\d+\b|ra|sp)\s+(?<opr>-?\d+[.]?\d*|r\d+\b|ra|sp)$");
-            internal static readonly Regex StackOperations = new Regex(@"^(?<opt>push|pop|peek)\s+(?<opd>r\d+\b|ra|sp)$");
+            internal static readonly Regex JumpOperations = new Regex(@"^(?<opt>j|jal)\s+(?<opd>r\d+\b|ra|[1-9]|0x[0-9a-fA-F]+\b\d*\b)$");
+            internal static readonly Regex BranchingOperations = new Regex(@"^(?<opt>beq|beqal|bneq|bneqal|bgt|bgtal|bgte|bgteal|blt|bltal|blte|blteal)\s+(?<opd>r\d+\b|ra|sp|[1-9]\d*\b|0x[0-9a-fA-F]+\b)\s+(?<opl>-?\d+[.]?\d*|r\d+\b|0x[0-9a-fA-F]+\b|ra|sp)\s+(?<opr>-?\d+[.]?\d*|r\d+\b|0x[0-9a-fA-F]+\b|ra|sp)$");
+            internal static readonly Regex StackOperations = new Regex(@"^(?<opt>push|pop|peek)\s+(?<opd>r\d+\b|0x[0-9a-fA-F]+\b|ra|sp)$");
             internal static readonly Regex SelfOperations = new Regex(@"^(?<opt>nop|ret)$");
             internal static readonly Regex DestinationOperations = new Regex(@"^(?<opt>inc|dec)\s+(?<opd>r\d+\b|ra|sp)$"); 
-            internal static readonly Regex UnaryOperations = new Regex(@"^(?<opt>mov|sqrt|assert)\s+(?<opd>r\d+\b||ra|sp)\s+(?<opl>-?\d+[.]?\d*|r\d+\b|ra|sp)$");
-            internal static readonly Regex BinaryOperations = new Regex(@"^(?<opt>add|sub|mul|div|eq|neq|gt|gte|lt|lte)\s+(?<opd>r\d+\b|ra|sp)\s+(?<opl>-?\d+[.]?\d*|r\d+\b|ra|sp)\s+(?<opr>-?\d+[.]?\d*|r\d+\b|ra|sp)$");
+            internal static readonly Regex UnaryOperations = new Regex(@"^(?<opt>mov|sqrt|assert)\s+(?<opd>r\d+\b||ra|sp)\s+(?<opl>-?\d+[.]?\d*|r\d+\b|0x[0-9a-fA-F]+\b|ra|sp)$");
+            internal static readonly Regex BinaryOperations = new Regex(@"^(?<opt>add|sub|mul|div|eq|neq|gt|gte|lt|lte)\s+(?<opd>r\d+\b|ra|sp)\s+(?<opl>-?\d+[.]?\d*|r\d+\b|0x[0-9a-fA-F]+\b|ra|sp)\s+(?<opr>-?\d+[.]?\d*|r\d+\b|0x[0-9a-fA-F]+\b|ra|sp)$");
             internal static readonly Regex ReadDeviceOperations = new Regex(@"^(?<opt>rdev|rd)\s+(?<opd>r\d+\b)\s+(?<opl>d\d+\.\d+)$");
-            internal static readonly Regex WriteDeviceOperations = new Regex(@"^(?<opt>wdev|wd)\s+(?<opd>d\d+\.\d+\b)\s+(?<opl>r\d+\b|-?\d+[.]?\d*|r\d+\b)$");
+            internal static readonly Regex WriteDeviceOperations = new Regex(@"^(?<opt>wdev|wd)\s+(?<opd>d\d+\.\d+\b)\s+(?<opl>r\d+\b|-?\d+[.]?\d*|r\d+\b|0x[0-9a-fA-F]+\b)$");
 
 #if HASM_FEATURE_MEMORY
             internal static readonly Regex AllocateMemory = new Regex(@"^(?<opt>malloc)\s+(?<opd>r\d+\b)\s+(?<opl>\d+)$"); 
