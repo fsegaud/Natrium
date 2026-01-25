@@ -1,15 +1,10 @@
-jal f0
-inc r2
-ret
-
-f0:
-    push ra
-    jal f1
-    pop ra
+alias $check 0
+beq if0 r0 $check
+j else0
+if0:
     inc r1
-    j ra
-
-f1:
+    j endif0
+else0:
     inc r0
-    j ra
-
+endif0:
+ret
