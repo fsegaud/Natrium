@@ -44,7 +44,7 @@ namespace Hasm
             _devices = new IDevice[numDevices];
         }
 
-        public T? PlugDevice<T>(uint deviceSlot, T device) where T : class, IDevice
+        public TDevice? PlugDevice<TDevice>(uint deviceSlot, TDevice device) where TDevice : class, IDevice
         {
             if (deviceSlot >= _devices.Length)
                 return null;
@@ -652,6 +652,10 @@ namespace Hasm
                     case Operation.SleepMilliseconds:
                         _sleepTime = (long)leftOperandValue;
                         _sleepWatch.Restart();
+                        breakLoop = true;
+                        break;
+                    
+                    case Operation.Yield:
                         breakLoop = true;
                         break;
                     

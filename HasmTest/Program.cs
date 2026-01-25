@@ -6,7 +6,7 @@ class Program
     [SuppressMessage("ReSharper", "UnusedParameter.Local")]
     static void Main(string[] args)
     {
-        string sourceFile = "../../../test.hasm";
+        string sourceFile = "../../../hasm_src/test.hasm";
         
         Hasm.Compiler compiler = new Hasm.Compiler();
         Hasm.Program? program = compiler.Compile(File.ReadAllText(sourceFile));
@@ -19,23 +19,13 @@ class Program
 
         PrintProgramInfo(program);
         
-        Hasm.Processor processor = new Hasm.Processor(numDevices: 2);
-        Hasm.Devices.Screen screen = processor.PlugDevice(1, new Hasm.Devices.Screen())!;
+        Hasm.Processor processor = new Hasm.Processor(numDevices: 1);
         processor.PlugDevice(0, new Hasm.Devices.Eeprom(32));
         processor.Load(program, DebugCallback);
-        processor.Push(10);   // args: cycles
 
-        string? lastScreenDisplay = null;
         while (!processor.IsFinished)
         {
             processor.Run();
-
-            if (screen?.Display != lastScreenDisplay)
-            {
-                // Console.Clear();
-                Console.WriteLine(screen?.Display);
-                lastScreenDisplay = screen?.Display;
-            }
         }
         
         if (processor.HasError)

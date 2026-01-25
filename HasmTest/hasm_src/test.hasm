@@ -1,0 +1,15 @@
+jal f0
+inc r2
+ret
+
+f0:
+    push ra
+    jal f1
+    pop ra
+    inc r1
+    j ra
+
+f1:
+    inc r0
+    j ra
+
