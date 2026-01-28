@@ -1,7 +1,5 @@
-- nested jumps ra stack (fixed with push/jal/pop)
 - multi src file / includes
 - memory / arrays
-- test suit
 - gh actions
 
 - cleanup
