@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Net;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 
@@ -701,6 +700,7 @@ namespace Hasm
                     case "mul": instruction.Operation = Operation.Multiply; break;
                     case "div": instruction.Operation = Operation.Divide; break;
                     case "eq": instruction.Operation = Operation.Equal; break;
+                    case "ne": instruction.Operation = Operation.NotEqual; break;
                     case "neq": instruction.Operation = Operation.NotEqual; break;
                     case "gt": instruction.Operation = Operation.GreaterThan; break;
                     case "gte": instruction.Operation = Operation.GreaterThanOrEqual; break;
@@ -953,7 +953,7 @@ namespace Hasm
             internal static readonly Regex SelfOperations = new Regex(@"^(?<opt>nop|ret|yield)$");
             internal static readonly Regex DestinationOperations = new Regex(@"^(?<opt>inc|dec)\s+(?<opd>r\d+\b|ra|sp)$"); 
             internal static readonly Regex UnaryOperations = new Regex(@"^(?<opt>mov|sqrt|assert)\s+(?<opd>r\d+\b||ra|sp)\s+(?<opl>-?\d+[.]?\d*|r\d+\b|0x[0-9a-fA-F]+\b|ra|sp)$");
-            internal static readonly Regex BinaryOperations = new Regex(@"^(?<opt>add|sub|mul|div|eq|neq|gt|gte|lt|lte)\s+(?<opd>r\d+\b|ra|sp)\s+(?<opl>-?\d+[.]?\d*|r\d+\b|0x[0-9a-fA-F]+\b|ra|sp)\s+(?<opr>-?\d+[.]?\d*|r\d+\b|0x[0-9a-fA-F]+\b|ra|sp)$");
+            internal static readonly Regex BinaryOperations = new Regex(@"^(?<opt>add|sub|mul|div|eq|ne|neq|gt|gte|lt|lte)\s+(?<opd>r\d+\b|ra|sp)\s+(?<opl>-?\d+[.]?\d*|r\d+\b|0x[0-9a-fA-F]+\b|ra|sp)\s+(?<opr>-?\d+[.]?\d*|r\d+\b|0x[0-9a-fA-F]+\b|ra|sp)$");
             internal static readonly Regex ReadDeviceOperations = new Regex(@"^(?<opt>rdev|rd)\s+(?<opd>r\d+\b)\s+(?<opl>d\d+\.\d+)$");
             internal static readonly Regex WriteDeviceOperations = new Regex(@"^(?<opt>wdev|wd)\s+(?<opd>d\d+\.\d+\b)\s+(?<opl>r\d+\b|-?\d+[.]?\d*|r\d+\b|0x[0-9a-fA-F]+\b)$");
 

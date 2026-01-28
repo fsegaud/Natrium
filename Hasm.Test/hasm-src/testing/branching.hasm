@@ -1,0 +1,222 @@
+@req registers 2
+
+# j
+mov     r0 0
+mov     r1 0
+j       8
+    inc r0
+inc     r1
+assert  r0 0
+assert  r1 1
+assert  ra 0
+
+mov     r0 0
+mov     r1 0
+j       label0
+    inc r0
+label0:
+    inc r1
+assert  r0 0
+assert  r1 1
+assert  ra 0
+
+# jal
+mov     r0 0
+mov     r1 0
+jal     28
+    inc r0
+inc     r1
+assert  r0 0
+assert  r1 1
+assert  ra 27
+
+mov     r0 0
+mov     r1 0
+jal     label1
+    inc r0
+label1:
+    inc r1
+assert  r0 0
+assert  r1 1
+assert  ra 36
+
+nop
+nop
+nop
+nop
+nop
+nop
+nop
+nop
+nop
+nop
+
+# beq
+mov     r0 0
+mov     r1 0
+beq     59 r0 1
+    inc r0
+inc     r1
+assert  r0 1
+assert  r1 1
+
+mov     r0 0
+mov     r1 0
+beq     label2 r0 1
+    inc r0
+label2:
+    inc r1
+assert  r0 1
+assert  r1 1
+
+mov     r0 0
+mov     r1 0
+beq     76 r0 0
+    inc r0
+inc     r1
+assert  r0 0
+assert  r1 1
+
+mov     r0 0
+mov     r1 0
+beq     label3 r0 0
+    inc r0
+label3:
+    inc r1
+assert  r0 0
+assert  r1 1
+
+# beqal
+mov     r0 0
+mov     r1 0
+beqal   94 r0 1
+    inc r0
+inc     r1
+assert  r0 1
+assert  r1 1
+nop
+
+mov     r0 0
+mov     r1 0
+beqal   label4 r0 1
+    inc r0
+label4:
+    inc r1
+assert  r0 1
+assert  r1 1
+nop
+
+mov     r0 0
+mov     r1 0
+beqal   113 r0 0
+    inc r0
+inc     r1
+assert  r0 0
+assert  r1 1
+assert  ra 112
+
+mov     r0 0
+mov     r1 0
+beqal   label5 r0 0
+    inc r0
+label5:
+    inc r1
+assert  r0 0
+assert  r1 1
+assert  ra 121
+
+# bne
+mov     r0 0
+mov     r1 0
+bne     131 r0 0
+    inc r0
+inc     r1
+assert  r0 1
+assert  r1 1
+
+mov     r0 0
+mov     r1 0
+bne     label6 r0 0
+    inc r0
+label6:
+    inc r1
+assert  r0 1
+assert  r1 1
+
+mov     r0 0
+mov     r1 0
+bne     150 r0 1
+    inc r0
+inc     r1
+assert  r0 0
+assert  r1 1
+
+mov     r0 0
+mov     r1 0
+bne     label8 r0 1
+    inc r0
+label8:
+    inc r1
+assert  r0 0
+assert  r1 1
+
+# bneal
+mov     r0 0
+mov     r1 0
+bneal   168 r0 0
+    inc r0
+inc     r1
+assert  r0 1
+assert  r1 1
+nop
+
+mov     r0 0
+mov     r1 0
+bneal   label9 r0 0
+    inc r0
+label9:
+    inc r1
+assert  r0 1
+assert  r1 1
+nop
+
+mov     r0 0
+mov     r1 0
+bneal   187 r0 1
+    inc r0
+inc     r1
+assert  r0 0
+assert  r1 1
+assert  ra 186
+
+mov     r0 0
+mov     r1 0
+bneal   label10 r0 1
+    inc r0
+label10:
+    inc r1
+assert  r0 0
+assert  r1 1
+assert  ra 195
+
+# TODO
+# bgt
+# bgtal
+# bgte
+# bgteal
+# blt
+# bltal
+# blte
+# blteal
+
+
+# return
+mov     r0 0
+mov     r1 0
+jal     221
+inc     r1
+assert r0 1
+assert r1 1
+ret 
+inc     r0
+j       ra

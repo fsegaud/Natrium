@@ -275,7 +275,7 @@ namespace Hasm
             return true;
         }
         
-        public void Load(Program program, Action<DebugData>? debugCallback = null)
+        public void Load(Program program, Action<DebugData>? debugCallback = null, bool unplugDevices = false)
         {
             _program = program;
             _debugCallback = debugCallback;
@@ -285,7 +285,14 @@ namespace Hasm
             _stackPointer = 0;
             _returnAddress = 0;
             _instructionPointer = -0;
-            
+
+            Array.Clear(_registers, 0, _registers.Length);
+            Array.Clear(_stack, 0, _stack.Length);
+            if (unplugDevices)
+            {
+                Array.Clear(_devices, 0, _devices.Length);
+            }
+
             LastError = Result.Success();
             
             if (_registers.Length < program.RequiredRegisters || _stack.Length < program.RequiredStack || 

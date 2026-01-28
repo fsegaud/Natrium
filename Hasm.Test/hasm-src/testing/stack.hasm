@@ -1,0 +1,24 @@
+@req registers 3
+@req stack 1
+
+# user registers
+mov     r0 1
+push    r0
+assert  sp 1
+peek    r1
+assert  r1 1
+assert  sp 1
+pop     r2
+assert  r2 1
+assert  sp 0 
+
+# ra register
+jal     label
+label:
+    nop
+push    ra
+assert  sp 1
+mov     ra 0
+pop     ra
+assert  ra 18
+assert  sp 0
