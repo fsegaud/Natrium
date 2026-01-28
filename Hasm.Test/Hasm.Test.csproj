@@ -8,7 +8,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\HasmDevices\HasmDevices.csproj" />
+      <ProjectReference Include="..\Hasm.Devices\Hasm.Devices.csproj" />
       <ProjectReference Include="..\Hasm\Hasm.csproj" />
     </ItemGroup>
 

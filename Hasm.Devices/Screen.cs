@@ -1,4 +1,3 @@
-// ReSharper disable once CheckNamespace
 namespace Hasm.Devices
 {
     // 0: Append chat (w)

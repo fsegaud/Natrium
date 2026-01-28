@@ -1,5 +1,4 @@
-﻿// ReSharper disable once CheckNamespace
-namespace Hasm.Devices
+﻿namespace Hasm.Devices
 {
     // 0: index (w)
     // 1: value (rw)

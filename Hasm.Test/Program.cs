@@ -1,5 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
-namespace HasmTest;
+namespace Hasm.Test;
 
 class Program
 {
