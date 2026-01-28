@@ -22,6 +22,8 @@ namespace Hasm
             _skipLine = new bool[_lines.Length];
             _instructions.Clear();
             _labelToLine.Clear();
+            
+            LastError = Result.Success();
 
             Program program = new Program
             {

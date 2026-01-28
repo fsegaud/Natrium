@@ -7,6 +7,7 @@ namespace Hasm
         // Compiler.
         SyntaxError = 100,
         OperationNotSupported,
+        LabelNotFound,
         
         // Processor
         ProgramNotLoaded = 200,
@@ -17,7 +18,6 @@ namespace Hasm
         NaN,
         StackOverflow,
         InvalidJump,
-        LabelNotFound,
         DeviceOverflow,
         DeviceUnplugged,
         DeviceFailed,

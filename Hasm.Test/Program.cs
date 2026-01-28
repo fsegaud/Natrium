@@ -1,46 +1,108 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using Newtonsoft.Json;
+
 namespace Hasm.Test;
 
-// TODO: /0 sqrt<0 errors req dev
+// TODO: Error.InvalidJump+
 
 static class Program
 {
+    private const string TestConfigurationFile = "test-config.json";
+    
     [SuppressMessage("ReSharper", "UnusedParameter.Local")]
-    private static void Main(string[] args)
+    private static int Main(string[] args)
     {
+
         Compiler compiler = new Compiler();
         Processor processor = new Processor(8, 8, 2);
-        
-        var srcFiles = Directory.GetFiles("../../../hasm-src/testing", "*.hasm");
-        foreach (var srcFile in srcFiles)
+
+        TestConfiguration? testConfiguration = TestConfiguration.Load(TestConfigurationFile);
+        if (testConfiguration?.TestDescriptors == null)
+        {
+            Console.Error.WriteLine($"Could not load {TestConfigurationFile}");
+            return -1;
+        }
+
+        int failures = 0;
+        foreach (var test in testConfiguration.TestDescriptors)
         {
             string srcContent;
             try
             {
-                srcContent = File.ReadAllText(srcFile);
-                
+                srcContent = File.ReadAllText(test.SourceFile);
             }
             catch (Exception e)
             {
                 Console.WriteLine(e);
-                return;
+                continue;
             }
             
             Hasm.Program? program = compiler.Compile(srcContent);
+            if (compiler.LastError.Error == test.CompilerError)
+            {
+                ConsoleHelper.PrintPassedTest(Path.GetFileName(test.SourceFile), "Compile");
+            }
+            else if (compiler.LastError.Error != test.CompilerError)
+            {
+                ConsoleHelper.PrintFailedTest(Path.GetFileName(test.SourceFile), compiler.LastError, "Compile");
+                failures++;
+            }
+
             if (program == null || compiler.LastError.Error != Error.Success)
+                continue;
+            
+            processor.Load(program);
+            if (test.RuntimeError == Error.RequirementsNotMet && processor.LastError.Error != Error.RequirementsNotMet)
             {
-                ConsoleHelper.PrintFailedTest(Path.GetFileName(srcFile), compiler.LastError);
-                break;
+                ConsoleHelper.PrintFailedTest(Path.GetFileName(test.SourceFile), processor.LastError, "Runtime");
+                failures++;
+                continue;
             }
             
-            processor.Load(program, ConsoleHelper.DebugCallback);
-            if (!processor.Run() || processor.LastError.Error != Error.Success)
+            processor.Run();
+            if (processor.LastError.Error != test.RuntimeError)
             {
-                ConsoleHelper.PrintFailedTest(Path.GetFileName(srcFile), processor.LastError);
-                break;
+                ConsoleHelper.PrintFailedTest(Path.GetFileName(test.SourceFile), processor.LastError,  "Runtime");
+                failures++;
+                continue;
             }
             
-            ConsoleHelper.PrintPassedTest(Path.GetFileName(srcFile));
+            ConsoleHelper.PrintPassedTest(Path.GetFileName(test.SourceFile), "Runtime");
         }
+        
+        if (failures > 0)
+            Console.WriteLine($"{failures} tests failed.");
+        else
+            Console.WriteLine($"All tests passed.");
+
+        return failures;
+    }
+
+    private class TestConfiguration
+    {
+        public TestDescriptor[]? TestDescriptors;
+
+        public static TestConfiguration? Load(string path)
+        {
+            string json;
+            try
+            {
+                json = File.ReadAllText(path);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                return null;
+            }
+            
+            return JsonConvert.DeserializeObject<TestConfiguration>(json);
+        }
+    }
+
+    private class TestDescriptor
+    {
+        public string SourceFile;
+        public Error CompilerError;
+        public Error RuntimeError;
     }
 }

@@ -1,0 +1,2 @@
+@req devices 0    # pass
+@req devices 1024 # fail

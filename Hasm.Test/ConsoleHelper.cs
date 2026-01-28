@@ -27,13 +27,13 @@ public static class ConsoleHelper
         Console.WriteLine($"[dbg]-----------------------------------------------------------------------------------------");
     }
 
-    public static void PrintPassedTest(string testName)
+    public static void PrintPassedTest(string testName, string stage)
     {
-        Console.WriteLine($"[PASSED] {testName}");
+        Console.WriteLine($"[PASSED] {stage} {testName}");
     }
     
-    public static void PrintFailedTest(string testName, Result result)
+    public static void PrintFailedTest(string testName, Result result, string stage)
     {
-        Console.WriteLine($"[FAILED] {testName}. {result.Error} at line {result.Line}: {result.RawInstruction}");
+        Console.WriteLine($"[FAILED] {stage} {testName}. {result.Error} ({(int)result.Error}) at line {result.Line}: {result.RawInstruction}");
     }
 }

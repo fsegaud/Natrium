@@ -1,0 +1,2 @@
+@req registers 0    # pass
+@req registers 1024 # fail

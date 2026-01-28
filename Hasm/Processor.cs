@@ -30,12 +30,12 @@ namespace Hasm
         public  Result LastError { get; private set; }
         
 #if HASM_FEATURE_MEMORY
-        public Processor(uint numRegistries = 8u, uint stackLength = 16u, uint memoryLength = 32u, uint numDevices = 0u, int frequencyHz = 0)
+        public Processor(uint numRegisters = 8u, uint stackLength = 16u, uint memoryLength = 32u, uint numDevices = 0u, int frequencyHz = 0)
 #else
-        public Processor(uint numRegistries = 8u, uint stackLength = 16u, uint numDevices = 0u)
+        public Processor(uint numRegisters = 8u, uint stackLength = 16u, uint numDevices = 0u)
 #endif
         {
-            _registers = new double[numRegistries];
+            _registers = new double[numRegisters];
             _stack = new double[stackLength];
 #if  HASM_FEATURE_MEMORY
             _memory = new double[memoryLength];
@@ -307,7 +307,7 @@ namespace Hasm
                 LastError = new Result(Error.ProgramNotLoaded);
                 return false;
             }
-
+            
             if (IsFinished)
                 return true;
 

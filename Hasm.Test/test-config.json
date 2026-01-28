@@ -1,0 +1,88 @@
+{
+  "TestDescriptors": [
+    {
+      "SourceFile": "hasm-src/testing/syntax-error.hasm",
+      "CompilerError": 100,
+      "RuntimeError": 0
+    },{
+      "SourceFile": "hasm-src/testing/requirements-registers.hasm",
+      "CompilerError": 0,
+      "RuntimeError": 201
+    },
+    {
+      "SourceFile": "hasm-src/testing/requirements-stack.hasm",
+      "CompilerError": 0,
+      "RuntimeError": 201
+    },
+    {
+      "SourceFile": "hasm-src/testing/requirements-devices.hasm",
+      "CompilerError": 0,
+      "RuntimeError": 201
+    },
+    {
+      "SourceFile": "hasm-src/testing/registers.hasm",
+      "CompilerError": 0,
+      "RuntimeError": 0
+    },
+    {
+      "SourceFile": "hasm-src/testing/register-oob.hasm",
+      "CompilerError": 0,
+      "RuntimeError": 203
+    },
+    {
+      "SourceFile": "hasm-src/testing/stack.hasm",
+      "CompilerError": 0,
+      "RuntimeError": 0
+    },
+    {
+      "SourceFile": "hasm-src/testing/stack-overflow.hasm",
+      "CompilerError": 0,
+      "RuntimeError": 206
+    },
+    {
+      "SourceFile": "hasm-src/testing/aliases.hasm",
+      "CompilerError": 0,
+      "RuntimeError": 0
+    },
+    {
+      "SourceFile": "hasm-src/testing/math.hasm",
+      "CompilerError": 0,
+      "RuntimeError": 0
+    },
+    {
+      "SourceFile": "hasm-src/testing/math-dividezero.hasm",
+      "CompilerError": 0,
+      "RuntimeError": 204
+    },
+    {
+      "SourceFile": "hasm-src/testing/math-sqrtneg.hasm",
+      "CompilerError": 0,
+      "RuntimeError": 205
+    },
+    {
+      "SourceFile": "hasm-src/testing/comparison.hasm",
+      "CompilerError": 0,
+      "RuntimeError": 0
+    },
+    {
+      "SourceFile": "hasm-src/testing/branching.hasm",
+      "CompilerError": 0,
+      "RuntimeError": 0
+    },
+    {
+      "SourceFile": "hasm-src/testing/jump-invalid-line.hasm",
+      "CompilerError": 0,
+      "RuntimeError": 207
+    },
+    {
+      "SourceFile": "hasm-src/testing/jump-invalid-label.hasm",
+      "CompilerError": 102,
+      "RuntimeError": 0
+    },
+    {
+      "SourceFile": "hasm-src/testing/stack-overflow.hasm",
+      "CompilerError": 0,
+      "RuntimeError": 206
+    }
+  ]
+}
