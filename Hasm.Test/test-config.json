@@ -1,131 +1,131 @@
 {
   "TestDescriptors": [
     {
-      "SourceFile": "hasm-src/testing/syntax-error.hasm",
+      "SourceFile": "hasm-src/tests/syntax-error.hasm",
       "CompilerError": "SyntaxError",
       "RuntimeError": "Success"
     },{
-      "SourceFile": "hasm-src/testing/requirements-registers.hasm",
+      "SourceFile": "hasm-src/tests/requirements-registers.hasm",
       "CompilerError": "Success",
       "RuntimeError": "RequirementsNotMet"
     },
     {
-      "SourceFile": "hasm-src/testing/requirements-stack.hasm",
+      "SourceFile": "hasm-src/tests/requirements-stack.hasm",
       "CompilerError": "Success",
       "RuntimeError": "RequirementsNotMet"
     },
     {
-      "SourceFile": "hasm-src/testing/requirements-devices.hasm",
+      "SourceFile": "hasm-src/tests/requirements-devices.hasm",
       "CompilerError": "Success",
       "RuntimeError": "RequirementsNotMet"
     },
     {
-      "SourceFile": "hasm-src/testing/registers.hasm",
+      "SourceFile": "hasm-src/tests/registers.hasm",
       "CompilerError": "Success",
       "RuntimeError": "Success"
     },
     {
-      "SourceFile": "hasm-src/testing/register-oob.hasm",
+      "SourceFile": "hasm-src/tests/register-oob.hasm",
       "CompilerError": "Success",
       "RuntimeError": "RegisterOutOfBound"
     },
     {
-      "SourceFile": "hasm-src/testing/stack.hasm",
+      "SourceFile": "hasm-src/tests/stack.hasm",
       "CompilerError": "Success",
       "RuntimeError": "Success"
     },
     {
-      "SourceFile": "hasm-src/testing/stack-overflow.hasm",
+      "SourceFile": "hasm-src/tests/stack-overflow.hasm",
       "CompilerError": "Success",
       "RuntimeError": "StackOverflow"
     },
     {
-      "SourceFile": "hasm-src/testing/aliases.hasm",
+      "SourceFile": "hasm-src/tests/aliases.hasm",
       "CompilerError": "Success",
       "RuntimeError": "Success"
     },
     {
-      "SourceFile": "hasm-src/testing/math-add-sub.hasm",
+      "SourceFile": "hasm-src/tests/math-add-sub.hasm",
       "CompilerError": "Success",
       "RuntimeError": "Success"
     },
     {
-      "SourceFile": "hasm-src/testing/math-mul-div.hasm",
+      "SourceFile": "hasm-src/tests/math-mul-div.hasm",
       "CompilerError": "Success",
       "RuntimeError": "Success"
     },
     {
-      "SourceFile": "hasm-src/testing/math-misc.hasm",
+      "SourceFile": "hasm-src/tests/math-misc.hasm",
       "CompilerError": "Success",
       "RuntimeError": "Success"
     },
     {
-      "SourceFile": "hasm-src/testing/math-dividezero.hasm",
+      "SourceFile": "hasm-src/tests/math-dividezero.hasm",
       "CompilerError": "Success",
       "RuntimeError": "DivisionByZero"
     },
     {
-      "SourceFile": "hasm-src/testing/math-sqrtneg.hasm",
+      "SourceFile": "hasm-src/tests/math-sqrtneg.hasm",
       "CompilerError": "Success",
       "RuntimeError": "NaN"
     },
     {
-      "SourceFile": "hasm-src/testing/comparison.hasm",
+      "SourceFile": "hasm-src/tests/comparison.hasm",
       "CompilerError": "Success",
       "RuntimeError": "Success"
     },
     {
-      "SourceFile": "hasm-src/testing/branching-j.hasm",
+      "SourceFile": "hasm-src/tests/branching-j.hasm",
       "CompilerError": "Success",
       "RuntimeError": "Success"
     },
     {
-      "SourceFile": "hasm-src/testing/branching-ra.hasm",
+      "SourceFile": "hasm-src/tests/branching-ra.hasm",
       "CompilerError": "Success",
       "RuntimeError": "Success"
     },
     {
-      "SourceFile": "hasm-src/testing/branching-beq.hasm",
+      "SourceFile": "hasm-src/tests/branching-beq.hasm",
       "CompilerError": "Success",
       "RuntimeError": "Success"
     },
     {
-      "SourceFile": "hasm-src/testing/branching-bne.hasm",
+      "SourceFile": "hasm-src/tests/branching-bne.hasm",
       "CompilerError": "Success",
       "RuntimeError": "Success"
     },
     {
-      "SourceFile": "hasm-src/testing/jump-invalid-line.hasm",
+      "SourceFile": "hasm-src/tests/jump-invalid-line.hasm",
       "CompilerError": "Success",
       "RuntimeError": "InvalidJump"
     },
     {
-      "SourceFile": "hasm-src/testing/jump-invalid-label.hasm",
+      "SourceFile": "hasm-src/tests/jump-invalid-label.hasm",
       "CompilerError": "LabelNotFound",
       "RuntimeError": "Success"
     },
     {
-      "SourceFile": "hasm-src/testing/device-mov.hasm",
+      "SourceFile": "hasm-src/tests/device-mov.hasm",
       "CompilerError": "SyntaxError",
       "RuntimeError": "Success"
     },
     {
-      "SourceFile": "hasm-src/testing/device-overflow.hasm",
+      "SourceFile": "hasm-src/tests/device-overflow.hasm",
       "CompilerError": "Success",
       "RuntimeError": "DeviceOutOfBound"
     },
     {
-      "SourceFile": "hasm-src/testing/device-unplugged.hasm",
+      "SourceFile": "hasm-src/tests/device-unplugged.hasm",
       "CompilerError": "Success",
       "RuntimeError": "DeviceUnplugged"
     },
     {
-      "SourceFile": "hasm-src/testing/device-failure.hasm",
+      "SourceFile": "hasm-src/tests/device-failure.hasm",
       "CompilerError": "Success",
       "RuntimeError": "DeviceFailed"
     },
     {
-      "SourceFile": "hasm-src/testing/device.hasm",
+      "SourceFile": "hasm-src/tests/device.hasm",
       "CompilerError": "Success",
       "RuntimeError": "Success"
     }

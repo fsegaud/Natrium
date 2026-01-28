@@ -4,8 +4,6 @@ using Newtonsoft.Json.Converters;
 
 namespace Hasm.Test;
 
-// TODO: Error.InvalidJump+
-
 static class Program
 {
     private const string TestConfigurationFile = "test-config.json";
@@ -99,13 +97,13 @@ static class Program
             
             return JsonConvert.DeserializeObject<TestConfiguration>(json);
         }
-    }
-
-    private class TestDescriptor
-    {
-        public string SourceFile;
-        [JsonConverter(typeof(StringEnumConverter))]public Error CompilerError;
-        [JsonConverter(typeof(StringEnumConverter))]public Error RuntimeError;
+        
+        public class TestDescriptor
+        {
+            public string SourceFile;
+            [JsonConverter(typeof(StringEnumConverter))]public Error CompilerError;
+            [JsonConverter(typeof(StringEnumConverter))]public Error RuntimeError;
+        }
     }
 
     private class TestDevice : IDevice
