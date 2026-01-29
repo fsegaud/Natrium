@@ -1,0 +1,6 @@
+@req registers 1
+
+inc r0
+sleep 100
+inc r0
+assert r0 2

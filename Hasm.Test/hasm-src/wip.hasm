@@ -7,4 +7,7 @@ if0:
 else0:
     inc r0
 endif0:
+yield
+assert r0 $check
+assert r1 1
 ret

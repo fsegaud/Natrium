@@ -6,22 +6,37 @@ namespace Hasm.Test;
 
 static class Program
 {
-    private const string TestConfigurationFile = "test-config.json";
-    
     [SuppressMessage("ReSharper", "UnusedParameter.Local")]
     private static int Main(string[] args)
     {
+        // Parse args.
+        string? testConfigurationFile = args.Length > 0 ? args[0] : null;
+        if (string.IsNullOrEmpty(testConfigurationFile))
+        {
+            Console.Error.WriteLine("No test configuration file specified.");
+            return -1;
+        }
+        
+        string? debugArgument = args.Length > 1 ? args[1] : null;
+        Action<DebugData>? debugCallback = null;
+        if (debugArgument == "--debug")
+        {
+            debugCallback = ConsoleHelper.DebugCallback;
+        }
+        
+        string? infoArgument = args.Length > 2 ? args[2] : null;
+        bool showInfo = infoArgument == "--info";
 
+        TestConfiguration? testConfiguration = TestConfiguration.Load(testConfigurationFile);
+        if (testConfiguration?.TestDescriptors == null)
+        {
+            Console.Error.WriteLine($"Could not load {testConfigurationFile}");
+            return -1;
+        }
+        
         Compiler compiler = new Compiler();
         Processor processor = new Processor(8, 8, 2);
         processor.PlugDevice(0, new TestDevice());
-
-        TestConfiguration? testConfiguration = TestConfiguration.Load(TestConfigurationFile);
-        if (testConfiguration?.TestDescriptors == null)
-        {
-            Console.Error.WriteLine($"Could not load {TestConfigurationFile}");
-            return -1;
-        }
 
         int failures = 0;
         foreach (var test in testConfiguration.TestDescriptors)
@@ -37,9 +52,13 @@ static class Program
                 continue;
             }
             
+            // Compile.
             Hasm.Program? program = compiler.Compile(srcContent);
             if (compiler.LastError.Error == test.CompilerError)
             {
+                if (showInfo && program != null)
+                    ConsoleHelper.PrintProgramInfo(program);
+                
                 ConsoleHelper.PrintPassedTest(Path.GetFileName(test.SourceFile), "Compile");
             }
             else if (compiler.LastError.Error != test.CompilerError)
@@ -51,7 +70,8 @@ static class Program
             if (program == null || compiler.LastError.Error != Error.Success)
                 continue;
             
-            processor.Load(program);
+            // Load (and test serialization/deserialization).
+            processor.Load(Hasm.Program.FromBase64(program.ToBase64()), debugCallback);
             if (test.RuntimeError == Error.RequirementsNotMet && processor.LastError.Error != Error.RequirementsNotMet)
             {
                 ConsoleHelper.PrintFailedTest(Path.GetFileName(test.SourceFile), processor.LastError, "Runtime");
@@ -59,7 +79,12 @@ static class Program
                 continue;
             }
             
-            processor.Run();
+            // Run.
+            while (!processor.IsFinished)
+            {
+                processor.Run();
+            }
+            
             if (processor.LastError.Error != test.RuntimeError)
             {
                 ConsoleHelper.PrintFailedTest(Path.GetFileName(test.SourceFile), processor.LastError,  "Runtime");

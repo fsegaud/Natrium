@@ -30,6 +30,15 @@
       "RuntimeError": "StackOverflow"
     },
     {
+      "SourceFile": "hasm-src/tests/ret.hasm"
+    },
+    {
+      "SourceFile": "hasm-src/tests/yield.hasm"
+    },
+    {
+      "SourceFile": "hasm-src/tests/sleep.hasm"
+    },
+    {
       "SourceFile": "hasm-src/tests/aliases.hasm"
     },
     {
@@ -77,7 +86,7 @@
       "CompilerError": "SyntaxError"
     },
     {
-      "SourceFile": "hasm-src/tests/device-overflow.hasm",
+      "SourceFile": "hasm-src/tests/device-oob.hasm",
       "RuntimeError": "DeviceOutOfBound"
     },
     {
