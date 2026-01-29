@@ -28,14 +28,12 @@ namespace Hasm
             return Convert.ToBase64String(ms.GetBuffer(), 0, (int)ms.Length);
         }
 
-        public void FromBase64(string base64)
+        public static Program FromBase64(string base64)
         {
-            if (string.IsNullOrEmpty(base64))
-                return;    
-            
             byte[] bytes = Convert.FromBase64String(base64);
             using MemoryStream ms = new MemoryStream(bytes);
-            ProtoBuf.Serializer.Deserialize(ms, this);
+            
+            return ProtoBuf.Serializer.Deserialize<Program>(ms);
         }
     }
 }

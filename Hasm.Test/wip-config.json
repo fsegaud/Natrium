@@ -1,0 +1,95 @@
+{
+  "TestDescriptors": [
+    {
+      "SourceFile": "hasm-src/tests/syntax-error.hasm",
+      "CompilerError": "SyntaxError"
+    },{
+      "SourceFile": "hasm-src/tests/requirements-registers.hasm",
+      "RuntimeError": "RequirementsNotMet"
+    },
+    {
+      "SourceFile": "hasm-src/tests/requirements-stack.hasm",
+      "RuntimeError": "RequirementsNotMet"
+    },
+    {
+      "SourceFile": "hasm-src/tests/requirements-devices.hasm",
+      "RuntimeError": "RequirementsNotMet"
+    },
+    {
+      "SourceFile": "hasm-src/tests/registers.hasm"
+    },
+    {
+      "SourceFile": "hasm-src/tests/register-oob.hasm",
+      "RuntimeError": "RegisterOutOfBound"
+    },
+    {
+      "SourceFile": "hasm-src/tests/stack.hasm"
+    },
+    {
+      "SourceFile": "hasm-src/tests/stack-overflow.hasm",
+      "RuntimeError": "StackOverflow"
+    },
+    {
+      "SourceFile": "hasm-src/tests/aliases.hasm"
+    },
+    {
+      "SourceFile": "hasm-src/tests/math-add-sub.hasm"
+    },
+    {
+      "SourceFile": "hasm-src/tests/math-mul-div.hasm"
+    },
+    {
+      "SourceFile": "hasm-src/tests/math-misc.hasm"
+    },
+    {
+      "SourceFile": "hasm-src/tests/math-dividezero.hasm",
+      "RuntimeError": "DivisionByZero"
+    },
+    {
+      "SourceFile": "hasm-src/tests/math-sqrtneg.hasm",
+      "RuntimeError": "NaN"
+    },
+    {
+      "SourceFile": "hasm-src/tests/comparison.hasm"
+    },
+    {
+      "SourceFile": "hasm-src/tests/branching-j.hasm"
+    },
+    {
+      "SourceFile": "hasm-src/tests/branching-ra.hasm"
+    },
+    {
+      "SourceFile": "hasm-src/tests/branching-beq.hasm"
+    },
+    {
+      "SourceFile": "hasm-src/tests/branching-bne.hasm"
+    },
+    {
+      "SourceFile": "hasm-src/tests/jump-invalid-line.hasm",
+      "RuntimeError": "InvalidJump"
+    },
+    {
+      "SourceFile": "hasm-src/tests/jump-invalid-label.hasm",
+      "CompilerError": "LabelNotFound"
+    },
+    {
+      "SourceFile": "hasm-src/tests/device-mov.hasm",
+      "CompilerError": "SyntaxError"
+    },
+    {
+      "SourceFile": "hasm-src/tests/device-oob.hasm",
+      "RuntimeError": "DeviceOutOfBound"
+    },
+    {
+      "SourceFile": "hasm-src/tests/device-unplugged.hasm",
+      "RuntimeError": "DeviceUnplugged"
+    },
+    {
+      "SourceFile": "hasm-src/tests/device-failure.hasm",
+      "RuntimeError": "DeviceFailed"
+    },
+    {
+      "SourceFile": "hasm-src/tests/device.hasm"
+    }
+  ]
+}
