@@ -17,9 +17,10 @@ namespace Hasm
         private uint _stackPointer;
         private uint _returnAddress;
         private int _instructionPointer;
-
+        
         private readonly Stopwatch _sleepWatch = new Stopwatch();
         private long _sleepTime = -1;
+        private uint _frame;
         
         private Program? _program;
         private Action<DebugData>? _debugCallback;
@@ -281,6 +282,7 @@ namespace Hasm
             _debugCallback = debugCallback;
             _sleepTime = -1;
             _sleepWatch.Stop();
+            _frame = 0;
             
             _stackPointer = 0;
             _returnAddress = 0;
@@ -320,7 +322,7 @@ namespace Hasm
             }
             
             bool breakLoop = false;
-            for (int index = _instructionPointer; index < _program.Instructions.Length && !breakLoop && frames > 0; index++, _instructionPointer++, frames--, watchdog--)
+            for (int index = _instructionPointer; index < _program.Instructions.Length && !breakLoop && frames > 0; index++, _instructionPointer++, _frame++, frames--, watchdog--)
             {
                 Instruction instruction = _program.Instructions[index];
 
@@ -679,7 +681,7 @@ namespace Hasm
                 if (LastError.Error != Error.Success)
                     return false;
                 
-                _debugCallback?.Invoke(GenerateDebugData(ref instruction));
+                _debugCallback?.Invoke(GenerateDebugData(_frame, ref instruction));
 
                 if (watchdog <= 0)
                 {
@@ -703,12 +705,13 @@ namespace Hasm
             return _stackPointer > 0 ? _stack[--_stackPointer] : double.NaN;
         }
 
-        private DebugData GenerateDebugData(ref Instruction instruction)
+        private DebugData GenerateDebugData(uint frame, ref Instruction instruction)
         {
             DebugData data;
             
             // Instruction data.
-            
+
+            data.Frame = frame;
             data.Line = instruction.Line;
             data.RawInstruction = instruction.RawText;
             

@@ -6,15 +6,23 @@ public static class ConsoleHelper
     
     public static void DebugCallback(DebugData data)
     {
-        Console.ForegroundColor = ConsoleColor.DarkGray;
-        Console.Write("    ln: ");
-        Console.ResetColor();
-        Console.Write($"{data.Line:d4}");
         Console.Write("    ");
         Console.BackgroundColor = ConsoleColor.Gray;
         Console.ForegroundColor = ConsoleColor.Black;
         Console.Write($"{data.RawInstruction}");
         Console.ResetColor();
+        Console.WriteLine();
+        
+        Console.ForegroundColor = ConsoleColor.DarkGray;
+        Console.Write("    ln: ");
+        Console.ResetColor();
+        Console.Write($"{data.Line:d4}");
+        Console.Write("    ");
+        
+        Console.ForegroundColor = ConsoleColor.DarkGray;
+        Console.Write("    frame: ");
+        Console.ResetColor();
+        Console.Write($"{data.Frame}");
         Console.WriteLine();
         
         Console.ForegroundColor = ConsoleColor.DarkGray;

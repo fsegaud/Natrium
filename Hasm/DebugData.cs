@@ -2,6 +2,7 @@ namespace Hasm
 {
     public struct DebugData
     {
+        public uint Frame;
         public uint Line;
         public string RawInstruction;
         public double[] Registers;
