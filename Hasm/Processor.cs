@@ -300,7 +300,7 @@ namespace Hasm
                 LastError = new Result(Error.RequirementsNotMet);
         }
         
-        public bool Run(int cycles = int.MaxValue)
+        public bool Run(int frames = int.MaxValue, int? watchdog = null)
         {
             if (_program == null)
             {
@@ -320,7 +320,7 @@ namespace Hasm
             }
             
             bool breakLoop = false;
-            for (int index = _instructionPointer; index < _program.Instructions.Length && !breakLoop && cycles > 0; index++, _instructionPointer++, cycles--)
+            for (int index = _instructionPointer; index < _program.Instructions.Length && !breakLoop && frames > 0; index++, _instructionPointer++, frames--, watchdog--)
             {
                 Instruction instruction = _program.Instructions[index];
 
@@ -680,6 +680,13 @@ namespace Hasm
                     return false;
                 
                 _debugCallback?.Invoke(GenerateDebugData(ref instruction));
+
+                if (watchdog <= 0)
+                {
+                    // Infinite loop?
+                    LastError = new Result(Error.WatchdogBark, instruction);
+                    return false;
+                }
             }
 
             return true;

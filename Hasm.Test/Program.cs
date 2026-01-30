@@ -17,16 +17,13 @@ static class Program
             return -1;
         }
         
-        string? debugArgument = args.Length > 1 ? args[1] : null;
         Action<DebugData>? debugCallback = null;
-        if (debugArgument == "--debug")
-        {
+        if (args.Contains("--debug"))
             debugCallback = ConsoleHelper.DebugCallback;
-        }
         
-        string? infoArgument = args.Length > 2 ? args[2] : null;
-        bool showInfo = infoArgument == "--info";
-
+        bool showInfo = args.Contains("--info");
+        bool noWatchdog = args.Contains("--no-watchdog");
+        
         TestConfiguration? testConfiguration = TestConfiguration.Load(testConfigurationFile);
         if (testConfiguration?.TestDescriptors == null)
         {
@@ -82,7 +79,7 @@ static class Program
             // Run.
             while (!processor.IsFinished)
             {
-                processor.Run();
+                processor.Run(watchdog: noWatchdog ? null : 0x100000);
             }
             
             if (processor.LastError.Error != test.RuntimeError)

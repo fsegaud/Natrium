@@ -99,6 +99,10 @@
     },
     {
       "SourceFile": "hasm-src/tests/device.hasm"
+    },
+    {
+      "SourceFile": "hasm-src/tests/watchdog.hasm",
+      "RuntimeError" : "WatchdogBark"
     }
   ]
 }

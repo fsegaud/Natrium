@@ -28,6 +28,8 @@ namespace Hasm
         DoubleFree,
 #endif
         
-        AssertFailed = 900,
+        AssertFailed = 800,
+        
+        WatchdogBark = 900,
     }
 }
