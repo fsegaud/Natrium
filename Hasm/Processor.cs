@@ -713,7 +713,9 @@ namespace Hasm
 
             data.Frame = frame;
             data.Line = instruction.Line;
-            data.RawInstruction = instruction.RawText;
+            data.RawInstruction = instruction.RawInstruction;
+            data.PreprocessedInstruction = instruction.PreprocessedInstruction;
+            data.EncodedInstruction = instruction.ToString();
             
             // Program state.
             

@@ -7,7 +7,7 @@ namespace Hasm
     public class Program
     {
         [ProtoBuf.ProtoMember(1)]
-        public BuildConfig BuildConfig;
+        public BuildTarget BuildTarget;
         [ProtoBuf.ProtoMember(2)]
         public uint RequiredRegisters { get; internal set; }
         [ProtoBuf.ProtoMember(3)]

@@ -5,6 +5,8 @@ namespace Hasm
         public uint Frame;
         public uint Line;
         public string RawInstruction;
+        public string PreprocessedInstruction;
+        public string EncodedInstruction;
         public double[] Registers;
         public double[] Stack;
         public uint StackPointer;

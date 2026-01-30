@@ -10,15 +10,17 @@ namespace Hasm
     {
         private readonly List<Instruction> _instructions = new List<Instruction>();
         private readonly Dictionary<string, uint> _labelToLine = new Dictionary<string, uint>();
-        
+
+        private string[] _rawLines = { };
         private string[] _lines = {};
         private bool[] _skipLine = {};
         
         public  Result LastError { get; private set; }
         
-        public Program? Compile(string input, BuildConfig buildConfig = BuildConfig.Debug, Action<string>? debugCallback = null)
+        public Program? Compile(string input, BuildTarget buildTarget = BuildTarget.Debug, Action<string>? debugCallback = null)
         {
             _lines = input.Split('\n');
+            _rawLines = new string[_lines.Length];
             _skipLine = new bool[_lines.Length];
             _instructions.Clear();
             _labelToLine.Clear();
@@ -27,7 +29,7 @@ namespace Hasm
 
             Program program = new Program
             {
-                BuildConfig = buildConfig
+                BuildTarget = buildTarget
             };
 
             // First pass.
@@ -36,6 +38,16 @@ namespace Hasm
             {
                 succeed &= Check(ParseSpaceAndTabs(index));
                 succeed &= Check(ParseComments(index));
+                _rawLines[index] = _lines[index];
+            }
+            
+            if (!succeed)
+                return null;
+            
+            // Second pass.
+            succeed = true;
+            for (var index = 0u; index < _lines.Length && succeed; index++)
+            {
                 succeed &= Check(ParseAliases(index));
                 succeed &= Check(ParseRequirements(index, ref program));
                 succeed &= Check(PreParseLabels(index));
@@ -44,7 +56,7 @@ namespace Hasm
             if (!succeed)
                 return null;
             
-            // Second pass.
+            // Third pass.
             for (var index = 0u; index < _lines.Length && succeed; index++)
             {
                 succeed &= Check(ParseLabels(index));
@@ -72,11 +84,12 @@ namespace Hasm
             
             // Post-compile.
             program.Instructions = _instructions.ToArray();
-            if (buildConfig == BuildConfig.Release)
+            if (buildTarget == BuildTarget.Release)
             {
                 for (var index = 0; index < program.Instructions.Length; index++)
                 {
-                    program.Instructions[index].RawText = string.Empty;
+                    program.Instructions[index].RawInstruction = string.Empty;
+                    program.Instructions[index].PreprocessedInstruction = string.Empty;
                 }
             }
             
@@ -142,10 +155,7 @@ namespace Hasm
 
                 for (var replIndex = 0; replIndex < _lines.Length; replIndex++)
                 {
-                    
-                    // Add space/endline to avoid replacing $aa with [$a]a for instance.  
-                    _lines[replIndex] = _lines[replIndex].Replace(alias + " ", dest + " ");
-                    _lines[replIndex] = _lines[replIndex].Replace(alias + "\r", dest + "\r");
+                    _lines[replIndex] = Regex.Replace(_lines[replIndex], alias.Replace("$", @"\$") + @"\b", dest);
                 }
                 
                 _skipLine[index] = true;
@@ -242,7 +252,8 @@ namespace Hasm
                 string opt = match.Groups["opt"].Value;
 
                 Instruction instruction = default;
-                instruction.RawText = _lines[index];
+                instruction.RawInstruction = _rawLines[index];
+                instruction.PreprocessedInstruction = _lines[index];
                 instruction.Line = index + 1;
                     
                 switch (opt)
@@ -276,7 +287,8 @@ namespace Hasm
                 string opl = match.Groups["opl"].Value;
                 
                 Instruction instruction = default;
-                instruction.RawText = _lines[index];
+                instruction.RawInstruction = _rawLines[index];
+                instruction.PreprocessedInstruction = _lines[index];
                 instruction.Line = index + 1;
                 
                 switch (opt)
@@ -325,7 +337,8 @@ namespace Hasm
                 string opd = match.Groups["opd"].Value;
                 
                 Instruction instruction = default;
-                instruction.RawText = _lines[index];
+                instruction.RawInstruction = _rawLines[index];
+                instruction.PreprocessedInstruction = _lines[index];
                 instruction.Line = index + 1;
                 
                 switch (opt)
@@ -385,7 +398,8 @@ namespace Hasm
                 string opr = match.Groups["opr"].Value;
                 
                 Instruction instruction = default;
-                instruction.RawText = _lines[index];
+                instruction.RawInstruction = _rawLines[index];
+                instruction.PreprocessedInstruction = _lines[index];
                 instruction.Line = index + 1;
                 
                 switch (opt)
@@ -502,7 +516,8 @@ namespace Hasm
                 string opd = match.Groups["opd"].Value;
                     
                 Instruction instruction = default;
-                instruction.RawText = _lines[index];
+                instruction.RawInstruction = _rawLines[index];
+                instruction.PreprocessedInstruction = _lines[index];
                 instruction.Line = index + 1;
                     
                 switch (opt)
@@ -550,7 +565,8 @@ namespace Hasm
                 string opd = match.Groups["opd"].Value;
                 
                 Instruction instruction = default;
-                instruction.RawText = _lines[index];
+                instruction.RawInstruction = _rawLines[index];
+                instruction.PreprocessedInstruction = _lines[index];
                 instruction.Line = index + 1;
                 
                 switch (opt)
@@ -598,7 +614,8 @@ namespace Hasm
                 string opl = match.Groups["opl"].Value;
                 
                 Instruction instruction = default;
-                instruction.RawText = _lines[index];
+                instruction.RawInstruction = _rawLines[index];
+                instruction.PreprocessedInstruction = _lines[index];
                 instruction.Line = index + 1;
                 
                 switch (opt)
@@ -692,7 +709,8 @@ namespace Hasm
                 string opr = match.Groups["opr"].Value;
 
                 Instruction instruction = default;
-                instruction.RawText = _lines[index];
+                instruction.RawInstruction = _rawLines[index];
+                instruction.PreprocessedInstruction = _lines[index];
                 instruction.Line = index + 1u;
                 
                 switch (opt)
@@ -792,7 +810,8 @@ namespace Hasm
                 string opl = match.Groups["opl"].Value;
                 
                 Instruction instruction = default;
-                instruction.RawText = _lines[index];
+                instruction.RawInstruction = _rawLines[index];
+                instruction.PreprocessedInstruction = _lines[index];
                 instruction.Line = index + 1;
                 
                 switch (opt)
@@ -914,7 +933,8 @@ namespace Hasm
             {
                 Instruction instruction = new Instruction()
                 {
-                    RawText = "ret",
+                    RawInstruction = "ret",
+                    PreprocessedInstruction = "ret",
                     Operation = Operation.Ret,
                     Line = _instructions.Count == 0 ? 0 : _instructions[^1].Line + 3
                 };

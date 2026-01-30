@@ -14,7 +14,7 @@ namespace Hasm
         internal Result(Error error, Instruction instruction)
         {
             Error = error;
-            RawInstruction = instruction.RawText;
+            RawInstruction = instruction.PreprocessedInstruction;
             Line = instruction.Line;
         }
         

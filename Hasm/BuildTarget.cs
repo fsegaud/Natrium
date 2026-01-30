@@ -1,6 +1,6 @@
 namespace Hasm
 {
-    public enum BuildConfig
+    public enum BuildTarget
     {
         Debug = 0,
         Release = 1

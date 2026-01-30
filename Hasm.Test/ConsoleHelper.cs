@@ -6,10 +6,25 @@ public static class ConsoleHelper
     
     public static void DebugCallback(DebugData data)
     {
+        Console.ForegroundColor = ConsoleColor.DarkGray;
+        Console.WriteLine("-----------------------------------------------------------------------------------------");
+        Console.ResetColor();
+        
         Console.Write("    ");
         Console.BackgroundColor = ConsoleColor.Gray;
         Console.ForegroundColor = ConsoleColor.Black;
-        Console.Write($"{data.RawInstruction}");
+        Console.Write($" {data.PreprocessedInstruction} ");
+        Console.ResetColor();
+        Console.ForegroundColor = ConsoleColor.DarkGray;
+        Console.Write(" [ ");
+        Console.ResetColor();
+        Console.Write(data.RawInstruction);
+        Console.ForegroundColor = ConsoleColor.DarkGray;
+        Console.Write(" | ");
+        Console.ResetColor();
+        Console.Write(data.EncodedInstruction);
+        Console.ForegroundColor = ConsoleColor.DarkGray;
+        Console.Write(" ]");
         Console.ResetColor();
         Console.WriteLine();
         
@@ -101,10 +116,6 @@ public static class ConsoleHelper
         Console.WriteLine($"[dbg]               memblocks: {string.Join(' ',  data.MemoryBlocks)}");
 #endif
 
-        Console.ForegroundColor = ConsoleColor.DarkGray;
-        Console.WriteLine("-----------------------------------------------------------------------------------------");
-        Console.ResetColor();
-
         _prevData = data;
     }
 
@@ -144,10 +155,6 @@ public static class ConsoleHelper
         Console.Write("    base64: ");
         Console.ResetColor();
         Console.WriteLine(b64);
-        
-        Console.ForegroundColor = ConsoleColor.DarkGray;
-        Console.WriteLine("-----------------------------------------------------------------------------------------");
-        Console.ResetColor();
     }
 
     public static void PrintPassedTest(string testName, string stage)

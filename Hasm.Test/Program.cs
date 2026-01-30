@@ -1,6 +1,4 @@
 ﻿using System.Diagnostics.CodeAnalysis;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
 
 namespace Hasm.Test;
 
@@ -20,7 +18,8 @@ static class Program
         Action<DebugData>? debugCallback = null;
         if (args.Contains("--debug"))
             debugCallback = ConsoleHelper.DebugCallback;
-        
+
+        BuildTarget buildTarget = args.Contains("--target-debug") ? BuildTarget.Debug : BuildTarget.Release;
         bool showInfo = args.Contains("--info");
         bool noWatchdog = args.Contains("--no-watchdog");
         
@@ -50,7 +49,7 @@ static class Program
             }
             
             // Compile.
-            Hasm.Program? program = compiler.Compile(srcContent);
+            Hasm.Program? program = compiler.Compile(srcContent, buildTarget);
             if (compiler.LastError.Error == test.CompilerError)
             {
                 if (showInfo && program != null)
@@ -79,7 +78,7 @@ static class Program
             // Run.
             while (!processor.IsFinished)
             {
-                processor.Run(watchdog: noWatchdog ? null : 0x100000);
+                processor.Run(watchdog: noWatchdog ? null : 0x100);
             }
             
             if (processor.LastError.Error != test.RuntimeError)
@@ -98,54 +97,5 @@ static class Program
             Console.WriteLine($"All tests passed.");
 
         return failures;
-    }
-
-    private class TestConfiguration
-    {
-#pragma warning disable CS0649 // Field is assigned through json.
-        public TestDescriptor[]? TestDescriptors;
-#pragma warning restore CS0649
-
-        public static TestConfiguration? Load(string path)
-        {
-            string json;
-            try
-            {
-                json = File.ReadAllText(path);
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-                return null;
-            }
-            
-            return JsonConvert.DeserializeObject<TestConfiguration>(json);
-        }
-        
-        public class TestDescriptor
-        {
-#pragma warning disable CS0649 // Field is assigned through json.
-            public required string SourceFile;
-            [JsonConverter(typeof(StringEnumConverter))]public required Error CompilerError;
-            [JsonConverter(typeof(StringEnumConverter))]public required Error RuntimeError;
-#pragma warning restore CS0649
-        }
-    }
-
-    private class TestDevice : IDevice
-    {
-        private double _value;
-        
-        public bool TryReadValue(int index, out double value)
-        {
-            value = _value;
-            return index > 0;
-        }
-
-        public bool TryWriteValue(int index, double value)
-        {
-            _value = index * value;
-            return index > 0;
-        }
     }
 }

@@ -25,12 +25,13 @@ namespace Hasm
         [ProtoBuf.ProtoMember(7)] internal double RightOperandValue;
 
         [ProtoBuf.ProtoMember(8)] internal uint Line;
-        [ProtoBuf.ProtoMember(9)] internal string RawText;
+        [ProtoBuf.ProtoMember(9)] internal string RawInstruction;
+        [ProtoBuf.ProtoMember(10)] internal string PreprocessedInstruction;
 
         public override string ToString()
         {
-            return $"{Operation} {DestinationRegistryType} {Destination} {LeftOperandType} {LeftOperandValue} " +
-                   $"{RightOperandType} {RightOperandValue}";
+            return $"{Operation:d}:{DestinationRegistryType:d}.{Destination}:{LeftOperandType:d}.{LeftOperandValue}:" +
+                   $"{RightOperandType:d}.{RightOperandValue}";
         }
     }
 }
