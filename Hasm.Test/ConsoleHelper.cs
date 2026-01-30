@@ -2,38 +2,163 @@ namespace Hasm.Test;
 
 public static class ConsoleHelper
 {
+    private static DebugData _prevData; 
+    
     public static void DebugCallback(DebugData data)
     {
-        Console.WriteLine($"[dbg]    ln: {data.Line:d4} > {data.RawInstruction}");
-        Console.WriteLine($"[dbg]    ra: {data.ReturnAddress:d4}   registers: {string.Join(' ',  data.Registers)}");
-        Console.WriteLine($"[dbg]    sp: {data.StackPointer:d4}       stack: {string.Join(' ', data.Stack)}");
+        Console.ForegroundColor = ConsoleColor.DarkGray;
+        Console.Write("    ln: ");
+        Console.ResetColor();
+        Console.Write($"{data.Line:d4}");
+        Console.Write("    ");
+        Console.BackgroundColor = ConsoleColor.Gray;
+        Console.ForegroundColor = ConsoleColor.Black;
+        Console.Write($"{data.RawInstruction}");
+        Console.ResetColor();
+        Console.WriteLine();
+        
+        Console.ForegroundColor = ConsoleColor.DarkGray;
+        Console.Write("    ra: ");
+        Console.ResetColor();
+        if (_prevData.ReturnAddress != data.ReturnAddress)
+        {
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.Write($"{data.ReturnAddress:d4}");
+            Console.ResetColor();
+        }
+        else
+        {
+            Console.Write($"{data.ReturnAddress:d4}");
+        }
+        Console.ResetColor();
+        Console.ForegroundColor = ConsoleColor.DarkGray;
+        Console.Write("    registers: ");
+        Console.ResetColor();
+        for (var i = 0; i < data.Registers.Length; i++)
+        {
+            if (_prevData.Registers != null &&_prevData.Registers.Length == data.Registers.Length && 
+                Math.Abs(_prevData.Registers[i] - data.Registers[i]) > double.Epsilon)
+            {
+                Console.ForegroundColor = ConsoleColor.Blue;
+                Console.Write($"{data.Registers[i]}");
+                Console.ResetColor();
+                Console.Write(" ");
+            }
+            else
+            {
+                Console.Write($"{data.Registers[i]} ");
+            }
+        }
+        
+        Console.WriteLine();
+        
+        Console.ForegroundColor = ConsoleColor.DarkGray;
+        Console.Write("    sp: ");
+        Console.ResetColor();
+        if (_prevData.StackPointer != data.StackPointer)
+        {
+            Console.ForegroundColor = ConsoleColor.DarkYellow;
+            Console.Write($"{data.StackPointer:d4}   ");
+            Console.ResetColor();
+        }
+        else
+        {
+            Console.Write($"{data.StackPointer:d4}   ");
+        }
+        Console.ResetColor();
+        Console.ForegroundColor = ConsoleColor.DarkGray;
+        Console.Write("     stack: ");
+        Console.ResetColor();
+        for (var i = 0; i < data.Stack.Length; i++)
+        {
+            if (_prevData.Stack != null &&_prevData.Stack.Length == data.Stack.Length && 
+                Math.Abs(_prevData.Stack[i] - data.Stack[i]) > double.Epsilon)
+            {
+                Console.ForegroundColor = ConsoleColor.DarkYellow;
+                Console.Write($"{data.Stack[i]}");
+                Console.ResetColor();
+                Console.Write(" ");
+            }
+            else
+            {
+                Console.Write($"{data.Stack[i]}");
+                Console.Write(" ");
+            }
+        }
+        
+        Console.WriteLine();
+        
 #if HASM_FEATURE_MEMORY
         Console.WriteLine($"[dbg]                  memory: {string.Join(' ',  data.Memory)}");
         Console.WriteLine($"[dbg]               memblocks: {string.Join(' ',  data.MemoryBlocks)}");
 #endif
-        Console.WriteLine($"[dbg]-----------------------------------------------------------------------------------------");
+
+        Console.ForegroundColor = ConsoleColor.DarkGray;
+        Console.WriteLine("-----------------------------------------------------------------------------------------");
+        Console.ResetColor();
+
+        _prevData = data;
     }
 
     public static void PrintProgramInfo(Hasm.Program program)
     {
         string b64 = program.ToBase64();
-        Console.WriteLine($"[dbg]-----------------------------------------------------------------------------------------");
-        Console.WriteLine($"length: {b64.Length}    req_registers: {program.RequiredRegisters}    " +
-                          $"req_stack: {program.RequiredStack}    req_devices: {program.RequiredDevices}    " +
+        
+        Console.ForegroundColor = ConsoleColor.DarkGray;
+        Console.WriteLine("-----------------------------------------------------------------------------------------");
+        Console.ResetColor();
+        
+        Console.ForegroundColor = ConsoleColor.DarkGray;
+        Console.Write("    length: ");
+        Console.ResetColor();
+        Console.Write($"{b64.Length}");
+        Console.ForegroundColor = ConsoleColor.DarkGray;
+        Console.Write("    req_registers: ");
+        Console.ResetColor();
+        Console.Write($"{program.RequiredRegisters}");
+        Console.ForegroundColor = ConsoleColor.DarkGray;
+        Console.Write("    req_stack: ");
+        Console.ResetColor();
+        Console.Write($"{program.RequiredStack}");
+        Console.ForegroundColor = ConsoleColor.DarkGray;
+        Console.Write("    req_devices: ");
+        Console.ResetColor();
+        Console.Write($"{program.RequiredDevices}");
 #if HASM_FEATURE_MEMORY
-                          $"req_memory: {program.RequiredMemory}" +
+        Console.ForegroundColor = ConsoleColor.DarkGray;
+        Console.Write("    req_memory: ");
+        Console.ResetColor();
+        Console.Write($"{program.RequiredMemory}");
 #endif
-                          $"\n{b64}");
-        Console.WriteLine($"[dbg]-----------------------------------------------------------------------------------------");
+        Console.WriteLine();
+        
+        Console.ForegroundColor = ConsoleColor.DarkGray;
+        Console.Write("    base64: ");
+        Console.ResetColor();
+        Console.WriteLine(b64);
+        
+        Console.ForegroundColor = ConsoleColor.DarkGray;
+        Console.WriteLine("-----------------------------------------------------------------------------------------");
+        Console.ResetColor();
     }
 
     public static void PrintPassedTest(string testName, string stage)
     {
-        Console.WriteLine($"[PASSED] {stage} {testName}");
+        Console.Write("[");
+        Console.ForegroundColor = ConsoleColor.Green;
+        Console.Write("PASSED");
+        Console.ResetColor();
+        Console.Write("]");
+        Console.WriteLine($" {stage} {testName}");
     }
     
     public static void PrintFailedTest(string testName, Result result, string stage)
     {
-        Console.WriteLine($"[FAILED] {stage} {testName}. {result.Error} ({(int)result.Error}) at line {result.Line}: {result.RawInstruction}");
+        Console.Write("[");
+        Console.ForegroundColor = ConsoleColor.Red;
+        Console.Write("FAILED");
+        Console.ResetColor();
+        Console.Write("]");
+        Console.WriteLine($" {stage} {testName} -> {result.Error} ({(int)result.Error}) at line {result.Line}: {result.RawInstruction}");
     }
 }

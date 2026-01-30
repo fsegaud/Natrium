@@ -7,7 +7,8 @@ if0:
 else0:
     inc r0
 endif0:
-yield
+push r1
+pop r2
 assert r0 $check
-assert r1 1
+jal 14
 ret
