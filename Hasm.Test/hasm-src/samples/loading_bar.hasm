@@ -2,15 +2,15 @@
 @req    devices     2
 
 #config
-alias   $length     6
-alias   $sleep      100
+define   $length     6
+define   $sleep      100
 
 # aliases
-alias   $i          r0
-alias   $ii         r1
-alias   $cycles     r2
-alias   $screen_c   d1.0
-alias   $screen_r   d1.1
+define   $i          r0
+define   $ii         r1
+define   $cycles     r2
+define   $screen_c   d1.0
+define   $screen_r   d1.1
 
 # args
 pop     $cycles

@@ -48,7 +48,7 @@ namespace Hasm
             succeed = true;
             for (var index = 0u; index < _lines.Length && succeed; index++)
             {
-                succeed &= Check(ParseAliases(index));
+                succeed &= Check(ParseDefines(index));
                 succeed &= Check(ParseRequirements(index, ref program));
                 succeed &= Check(PreParseLabels(index));
             }
@@ -142,12 +142,12 @@ namespace Hasm
             return true;
         }
 
-        private bool ParseAliases(uint index)
+        private bool ParseDefines(uint index)
         {
             if (_skipLine[index])
                 return true;
             
-            Match match = RegexCollection.Aliases.Match(_lines[index]);
+            Match match = RegexCollection.Defines.Match(_lines[index]);
             if (match.Success)
             {
                 string alias = match.Groups["alias"].Value;
@@ -962,7 +962,7 @@ namespace Hasm
             internal static readonly Regex EmptyLine = new Regex(@"^[\s\t]*$");
             internal static readonly Regex MultipleSpaces = new Regex(@"\s\s+");
             internal static readonly Regex Comments = new Regex(@"^[^#]*(?<com>#+.*)$");
-            internal static readonly Regex Aliases = new Regex(@"^alias\s+(?<alias>\$[A-Za-z0-9_]+)\s(?<dest>(?:r\d+|d\d+\.\d+|-?\d+[.]?\d*|r\d+\b|0x[0-9a-fA-F]+\b))$");
+            internal static readonly Regex Defines = new Regex(@"^define\s+(?<alias>\$[A-Za-z0-9_]+)\s(?<dest>(?:r\d+|d\d+\.\d+|-?\d+[.]?\d*|r\d+\b|0x[0-9a-fA-F]+\b))$");
             internal static readonly Regex Requirements = new Regex(@"^@req\s+(?<type>registers|stack|devices|memory)\s+(?<val>\d+|0x[0-9a-fA-F]+\b)$"); 
             internal static readonly Regex Labels = new Regex(@"^(?<label>[A-Za-z_][A-Za-z0-9_]+)\s*:$"); 
             internal static readonly Regex LabelJumps = new Regex(@"^(?<opt>j|jal|beq|beqal|bneq|bneqal|bne|bneal|bgt|bgtal|bgte|bgteal|blt|bltal|blte|blteal)\s+(?<label>[A-Za-z_][A-Za-z0-9_]+\b).*$");

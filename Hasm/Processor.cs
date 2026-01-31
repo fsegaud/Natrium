@@ -20,7 +20,7 @@ namespace Hasm
         
         private readonly Stopwatch _sleepWatch = new Stopwatch();
         private long _sleepTime = -1;
-        private int? _watchdog = null;
+        private int? _watchdog;
         private uint _frame;
         
         private Program? _program;

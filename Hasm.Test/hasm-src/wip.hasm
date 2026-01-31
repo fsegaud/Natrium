@@ -1,4 +1,4 @@
-alias $check 0
+define $check 0
 beq if0 r0 $check
 j else0
 if0:

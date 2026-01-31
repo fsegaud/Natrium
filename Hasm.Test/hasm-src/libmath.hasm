@@ -1,0 +1,11 @@
+@req registers 2
+
+libmath_v2len:
+    pop  r0
+    pop  r1
+    mul  r0 r0 r0
+    mul  r1 r1 r1
+    add  r0 r0 r1
+    sqrt r0 r0
+    push r0
+    j    ra

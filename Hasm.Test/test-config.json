@@ -39,7 +39,7 @@
       "SourceFile": "hasm-src/tests/sleep.hasm"
     },
     {
-      "SourceFile": "hasm-src/tests/aliases.hasm"
+      "SourceFile": "hasm-src/tests/define.hasm"
     },
     {
       "SourceFile": "hasm-src/tests/math-add-sub.hasm"
