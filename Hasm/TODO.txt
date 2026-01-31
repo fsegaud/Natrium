@@ -3,7 +3,6 @@
 
 - cleanup
 - binary operations
-- angular operations
 - register indirection
 
 - test: args

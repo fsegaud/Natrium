@@ -1,0 +1,2 @@
+@req registers 1
+asin r0 -1.5

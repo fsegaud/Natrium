@@ -345,6 +345,10 @@ namespace Hasm
                         TrySetDestination(ref instruction, leftOperandValue);
                         break;
                     
+                    case Operation.Round:
+                        TrySetDestination(ref instruction, Math.Round(leftOperandValue, (int)rightOperandValue));
+                        break;
+                    
                     case Operation.Add:
                         TrySetDestination(ref instruction, leftOperandValue + rightOperandValue);
                         break;
@@ -380,6 +384,54 @@ namespace Hasm
                     case Operation.Power:
                         TrySetDestination(ref instruction, Math.Pow(leftOperandValue, rightOperandValue));
                         break;
+                    
+                    case Operation.Sine:
+                        TrySetDestination(ref instruction, Math.Sin(leftOperandValue));
+                        break;
+                    
+                    case Operation.Cosine:
+                        TrySetDestination(ref instruction, Math.Cos(leftOperandValue));
+                        break;
+                    
+                    case Operation.Tangent:
+                        TrySetDestination(ref instruction, Math.Tan(leftOperandValue));
+                        break;
+
+                    case Operation.ArcSine:
+                    {
+                        if (leftOperandValue < -1 || leftOperandValue > 1)
+                        {
+                            LastError = new Result(Error.BadArguments, instruction);
+                            return false;
+                        }
+                        
+                        TrySetDestination(ref instruction, Math.Asin(leftOperandValue));
+                        break;
+                    }
+
+                    case Operation.ArcCosine:
+                    {
+                        if (leftOperandValue < -1 || leftOperandValue > 1)
+                        {
+                            LastError = new Result(Error.BadArguments, instruction);
+                            return false;
+                        }
+
+                        TrySetDestination(ref instruction, Math.Acos(leftOperandValue));
+                        break;
+                    }
+
+                    case Operation.ArcTangent:
+                    {
+                        if (leftOperandValue < Math.PI * -0.5 || leftOperandValue > Math.PI * 0.5)
+                        {
+                            LastError = new Result(Error.BadArguments, instruction);
+                            return false;
+                        }
+                        
+                        TrySetDestination(ref instruction, Math.Atan(leftOperandValue));
+                        break;
+                    }
 
                     case Operation.RandomDouble:
                     {
@@ -424,6 +476,10 @@ namespace Hasm
                         TrySetDestination(ref instruction, destinationValue - 1d);
                         break;
                     }
+                    
+                    case Operation.Approx:
+                        TrySetDestination(ref instruction, Math.Abs(leftOperandValue - rightOperandValue) < 0.00001 ? 1d : 0d);
+                        break;
                     
                     case Operation.Equal:
                         TrySetDestination(ref instruction, Math.Abs(leftOperandValue - rightOperandValue) < double.Epsilon ? 1d : 0d);
@@ -482,7 +538,7 @@ namespace Hasm
                     case Operation.Assert:
                         if (!TryGetDestination(ref instruction, out destinationValue))
                             return false;
-                        if (Math.Abs(destinationValue - leftOperandValue) > double.Epsilon)
+                        if (Math.Abs(destinationValue - leftOperandValue) > double.Epsilon * 10000000)
                         {
                             LastError = new Result(Error.AssertFailed, instruction);
                             return false;

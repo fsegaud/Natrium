@@ -62,6 +62,33 @@
       "RuntimeError": "NaN"
     },
     {
+      "SourceFile": "hasm-src/tests/math-trigo.hasm"
+    },
+    {
+      "SourceFile": "hasm-src/tests/math-trigo-badargs0.hasm",
+      "RuntimeError" : "BadArguments"
+    },
+    {
+      "SourceFile": "hasm-src/tests/math-trigo-badargs1.hasm",
+      "RuntimeError" : "BadArguments"
+    },
+    {
+      "SourceFile": "hasm-src/tests/math-trigo-badargs2.hasm",
+      "RuntimeError" : "BadArguments"
+    },
+    {
+      "SourceFile": "hasm-src/tests/math-trigo-badargs3.hasm",
+      "RuntimeError" : "BadArguments"
+    },
+    {
+      "SourceFile": "hasm-src/tests/math-trigo-badargs4.hasm",
+      "RuntimeError" : "BadArguments"
+    },
+    {
+      "SourceFile": "hasm-src/tests/math-trigo-badargs5.hasm",
+      "RuntimeError" : "BadArguments"
+    },
+    {
       "SourceFile": "hasm-src/tests/random.hasm"
     },
     {
@@ -70,6 +97,9 @@
     },
     {
       "SourceFile": "hasm-src/tests/comparison.hasm"
+    },
+    {
+      "SourceFile": "hasm-src/tests/approx.hasm"
     },
     {
       "SourceFile": "hasm-src/tests/branching-j.hasm"

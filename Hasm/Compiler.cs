@@ -671,7 +671,14 @@ namespace Hasm
                 switch (opt)
                 {
                     case "mov": instruction.Operation = Operation.Move; break;
+                    case "round2": instruction.Operation = Operation.Round; break;
                     case "sqrt": instruction.Operation = Operation.SquareRoot; break;
+                    case "cos": instruction.Operation = Operation.Cosine; break;
+                    case "sin": instruction.Operation = Operation.Sine; break;
+                    case "tan": instruction.Operation = Operation.Tangent; break;
+                    case "acos": instruction.Operation = Operation.ArcCosine; break;
+                    case "asin": instruction.Operation = Operation.ArcSine; break;
+                    case "atan": instruction.Operation = Operation.ArcTangent; break;
                     case "assert": instruction.Operation = Operation.Assert; break;
                     default:
                     {
@@ -772,6 +779,8 @@ namespace Hasm
                     case "pow":  instruction.Operation = Operation.Power; break;
                     case "rnd":  instruction.Operation = Operation.RandomDouble; break;
                     case "rndi":  instruction.Operation = Operation.RandomInteger; break;
+                    case "round":  instruction.Operation = Operation.Round; break;
+                    case "apx": instruction.Operation = Operation.Approx; break;
                     case "eq": instruction.Operation = Operation.Equal; break;
                     case "ne": instruction.Operation = Operation.NotEqual; break;
                     case "neq": instruction.Operation = Operation.NotEqual; break;
@@ -1028,8 +1037,8 @@ namespace Hasm
             internal static readonly Regex StackOperations = new Regex(@"^(?<opt>push|pop|peek)\s+(?<opd>r\d+\b|0x[0-9a-fA-F]+\b|ra|sp)$");
             internal static readonly Regex SelfOperations = new Regex(@"^(?<opt>nop|ret|yield)$");
             internal static readonly Regex DestinationOperations = new Regex(@"^(?<opt>inc|dec)\s+(?<opd>r\d+\b|ra|sp)$"); 
-            internal static readonly Regex UnaryOperations = new Regex(@"^(?<opt>mov|sqrt|assert)\s+(?<opd>r\d+\b||ra|sp)\s+(?<opl>-?\d+[.]?\d*|r\d+\b|0x[0-9a-fA-F]+\b|ra|sp)$");
-            internal static readonly Regex BinaryOperations = new Regex(@"^(?<opt>add|sub|mul|div|pow|rnd|rndi|eq|ne|neq|gt|gte|lt|lte)\s+(?<opd>r\d+\b|ra|sp)\s+(?<opl>-?\d+[.]?\d*|r\d+\b|0x[0-9a-fA-F]+\b|ra|sp)\s+(?<opr>-?\d+[.]?\d*|r\d+\b|0x[0-9a-fA-F]+\b|ra|sp)$");
+            internal static readonly Regex UnaryOperations = new Regex(@"^(?<opt>mov|sqrt|cos|sin|tan|acos|asin|atan|assert)\s+(?<opd>r\d+\b||ra|sp)\s+(?<opl>-?\d+[.]?\d*|r\d+\b|0x[0-9a-fA-F]+\b|ra|sp)$");
+            internal static readonly Regex BinaryOperations = new Regex(@"^(?<opt>add|sub|mul|div|pow|rnd|rndi|round|apx|eq|ne|neq|gt|gte|lt|lte)\s+(?<opd>r\d+\b|ra|sp)\s+(?<opl>-?\d+[.]?\d*|r\d+\b|0x[0-9a-fA-F]+\b|ra|sp)\s+(?<opr>-?\d+[.]?\d*|r\d+\b|0x[0-9a-fA-F]+\b|ra|sp)$");
             internal static readonly Regex ReadDeviceOperations = new Regex(@"^(?<opt>rdev|rd)\s+(?<opd>r\d+\b)\s+(?<opl>d\d+\.\d+)$");
             internal static readonly Regex WriteDeviceOperations = new Regex(@"^(?<opt>wdev|wd)\s+(?<opd>d\d+\.\d+\b)\s+(?<opl>r\d+\b|-?\d+[.]?\d*|r\d+\b|0x[0-9a-fA-F]+\b)$");
 

@@ -1,0 +1,19 @@
+@req registers 1
+
+apx     r0  0   0
+assert  r0  1
+apx     r0  0   1
+assert  r0  0
+apx     r0  -1  -1
+assert  r0  1
+apx     r0  0x0 0x0
+assert  r0  1
+apx     r0  0   0x1
+assert  r0  0
+
+apx     r0  1.123456789     1.123459999
+assert  r0  1
+apx     r0  1.123456789     1.123499999
+assert  r0  0
+apx     r0  -1.123456789    -1.123499999
+assert  r0  0
