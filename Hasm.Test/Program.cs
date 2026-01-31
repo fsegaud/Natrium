@@ -15,13 +15,10 @@ static class Program
             return -1;
         }
         
-        Action<DebugData>? debugCallback = null;
-        if (args.Contains("--debug"))
-            debugCallback = ConsoleHelper.DebugCallback;
-
         BuildTarget buildTarget = args.Contains("--target-debug") ? BuildTarget.Debug : BuildTarget.Release;
+        Action<DebugData>? debugCallback = args.Contains("--debug") ? ConsoleHelper.DebugCallback : null;
         bool showInfo = args.Contains("--info");
-        bool noWatchdog = args.Contains("--no-watchdog");
+        int? watchdog = args.Contains("--no-watchdog") ? null : 0x1000;
         
         TestConfiguration? testConfiguration = TestConfiguration.Load(testConfigurationFile);
         if (testConfiguration?.TestDescriptors == null)
@@ -55,11 +52,11 @@ static class Program
                 if (showInfo && program != null)
                     ConsoleHelper.PrintProgramInfo(program);
                 
-                ConsoleHelper.PrintPassedTest(Path.GetFileName(test.SourceFile), "Compile");
+                ConsoleHelper.PrintPassedTest(test.SourceFile, "Compile");
             }
             else if (compiler.LastError.Error != test.CompilerError)
             {
-                ConsoleHelper.PrintFailedTest(Path.GetFileName(test.SourceFile), compiler.LastError, "Compile");
+                ConsoleHelper.PrintFailedTest(test.SourceFile, compiler.LastError, "Compile");
                 failures++;
             }
 
@@ -67,10 +64,10 @@ static class Program
                 continue;
             
             // Load (and test serialization/deserialization).
-            processor.Load(Hasm.Program.FromBase64(program.ToBase64()), debugCallback);
+            processor.Load(Hasm.Program.FromBase64(program.ToBase64()), debugCallback, watchdog);
             if (test.RuntimeError == Error.RequirementsNotMet && processor.LastError.Error != Error.RequirementsNotMet)
             {
-                ConsoleHelper.PrintFailedTest(Path.GetFileName(test.SourceFile), processor.LastError, "Runtime");
+                ConsoleHelper.PrintFailedTest(test.SourceFile, processor.LastError, "Runtime");
                 failures++;
                 continue;
             }
@@ -78,17 +75,17 @@ static class Program
             // Run.
             while (!processor.IsFinished)
             {
-                processor.Run(watchdog: noWatchdog ? null : 0x100);
+                processor.Run(16);
             }
             
             if (processor.LastError.Error != test.RuntimeError)
             {
-                ConsoleHelper.PrintFailedTest(Path.GetFileName(test.SourceFile), processor.LastError,  "Runtime");
+                ConsoleHelper.PrintFailedTest(test.SourceFile, processor.LastError,  "Runtime");
                 failures++;
                 continue;
             }
             
-            ConsoleHelper.PrintPassedTest(Path.GetFileName(test.SourceFile), "Runtime");
+            ConsoleHelper.PrintPassedTest(test.SourceFile, "Runtime");
         }
         
         if (failures > 0)

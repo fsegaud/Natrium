@@ -164,7 +164,7 @@ public static class ConsoleHelper
         Console.Write("PASSED");
         Console.ResetColor();
         Console.Write("]");
-        Console.WriteLine($" {stage} {testName}");
+        Console.WriteLine($" {stage} {Path.GetFileName(testName)}");
     }
     
     public static void PrintFailedTest(string testName, Result result, string stage)
@@ -174,6 +174,6 @@ public static class ConsoleHelper
         Console.Write("FAILED");
         Console.ResetColor();
         Console.Write("]");
-        Console.WriteLine($" {stage} {testName} -> {result.Error} ({(int)result.Error}) at line {result.Line}: {result.RawInstruction}");
+        Console.WriteLine($" {stage} {Path.GetFileName(testName)} -> {result.Error} ({(int)result.Error}) at line {result.Line}: {result.RawInstruction}");
     }
 }

@@ -20,6 +20,7 @@ namespace Hasm
         
         private readonly Stopwatch _sleepWatch = new Stopwatch();
         private long _sleepTime = -1;
+        private int? _watchdog = null;
         private uint _frame;
         
         private Program? _program;
@@ -276,12 +277,13 @@ namespace Hasm
             return true;
         }
         
-        public void Load(Program program, Action<DebugData>? debugCallback = null, bool unplugDevices = false)
+        public void Load(Program program, Action<DebugData>? debugCallback = null, int? watchdog = null, bool unplugDevices = false)
         {
             _program = program;
             _debugCallback = debugCallback;
             _sleepTime = -1;
             _sleepWatch.Stop();
+            _watchdog = watchdog;
             _frame = 0;
             
             _stackPointer = 0;
@@ -302,7 +304,7 @@ namespace Hasm
                 LastError = new Result(Error.RequirementsNotMet);
         }
         
-        public bool Run(int frames = int.MaxValue, int? watchdog = null)
+        public bool Run(int frames = int.MaxValue)
         {
             if (_program == null)
             {
@@ -322,7 +324,7 @@ namespace Hasm
             }
             
             bool breakLoop = false;
-            for (int index = _instructionPointer; index < _program.Instructions.Length && !breakLoop && frames > 0; index++, _instructionPointer++, _frame++, frames--, watchdog--)
+            for (int index = _instructionPointer; index < _program.Instructions.Length && !breakLoop && frames > 0; index++, _instructionPointer++, _frame++, frames--, _watchdog--)
             {
                 Instruction instruction = _program.Instructions[index];
 
@@ -683,7 +685,7 @@ namespace Hasm
                 
                 _debugCallback?.Invoke(GenerateDebugData(_frame, ref instruction));
 
-                if (watchdog <= 0)
+                if (_watchdog <= 0)
                 {
                     // Infinite loop?
                     LastError = new Result(Error.WatchdogBark, instruction);
