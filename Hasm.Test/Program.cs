@@ -75,7 +75,7 @@ static class Program
             // Run.
             while (!processor.IsFinished)
             {
-                processor.Run(16);
+                processor.Run(64);
             }
             
             if (processor.LastError.Error != test.RuntimeError)

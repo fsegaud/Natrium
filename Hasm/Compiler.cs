@@ -2,8 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.Linq;
-using System.Net;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 
@@ -41,7 +39,7 @@ namespace Hasm
             {
                 succeed &= Check(ParseSpaceAndTabs(index));
                 succeed &= Check(ParseComments(index));
-                succeed &= Check(ParseIncludes(index,srcPath, ref _lines));
+                succeed &= Check(ParseIncludes(index,srcPath));
                 
                 // Check if include added new lines.
                 if (_skipLine.Length != _lines.Length)
@@ -206,7 +204,7 @@ namespace Hasm
             return true;
         }
         
-        private bool ParseIncludes(uint index, string srcPath, ref string[] lines)
+        private bool ParseIncludes(uint index, string srcPath)
         {
             if (_skipLine[index])
                 return true;
