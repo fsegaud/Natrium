@@ -3,9 +3,10 @@ graphics_draw:
     jal  graphics_draw_background
     jal  graphics_draw_borders
     jal  graphics_draw_player
+    jal  graphics_draw_score
     pop  ra
     j    ra
-# graphics_draw:
+# graphics_draw
 
 graphics_draw_background:
     mov $i 0
@@ -16,7 +17,7 @@ graphics_draw_background:
         inc   $i
         bne   graphics_draw_background_loop $i $stop
     j ra
-# graphics_draw_background:
+# graphics_draw_background
 
 graphics_draw_borders:
     mov     $i        0
@@ -63,3 +64,52 @@ graphics_draw_player:
     wd  $screen_v $GRAPH_PLAYER
     j ra
 # graphics_draw_player
+
+graphics_draw_score:
+    push ra
+    
+    # score label
+    mov $i        0
+    wd  $screen_i $i
+    wd  $screen_v 0x53 # S
+    inc $i
+    wd  $screen_i $i
+    wd  $screen_v 0x63 # c
+    inc $i
+    wd  $screen_i $i
+    wd  $screen_v 0x6f # o
+    inc $i
+    wd  $screen_i $i
+    wd  $screen_v 0x72 # r
+    inc $i
+    wd  $screen_i $i
+    wd  $screen_v 0x65 # e
+    inc $i
+    wd  $screen_i $i
+    wd  $screen_v 0x3a # :
+    
+    # padding
+    inc $i
+    wd  $screen_i $i
+    wd  $screen_v 0x30 # 0
+    inc $i
+    wd  $screen_i $i
+    wd  $screen_v 0x30 # 0
+    inc $i
+    wd  $screen_i $i
+    wd  $screen_v 0x30 # 0
+    
+    # score value
+    mov r4 $score
+    graphics_draw_score_loop:
+        mod r5 r4 10   # TODO: floor/trunc r5
+        add r5 r5 0x30 # ascii
+        wd  $screen_i $i
+        wd  $screen_v r5     
+        div r4 r4 10
+        dec $i
+        bgte graphics_draw_score_loop r4 1
+    
+    pop ra
+    j ra
+# graphics_draw_score

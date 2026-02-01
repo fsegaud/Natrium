@@ -10,11 +10,13 @@ _main:
     # initial player position
     mov $px 11
     mov $py 3
+    mov $score 0
     
     _gameloop:
         jal   input_process_key
         jal   graphics_draw
         yield
+        inc   $score
         j     _gameloop
 
 _end:
