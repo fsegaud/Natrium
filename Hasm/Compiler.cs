@@ -252,9 +252,12 @@ namespace Hasm
             if (match.Success)
             {
                 string label = match.Groups["label"].Value;
-                uint jumpIndex = index + 2;
+                uint jumpIndex = index + 1;
+                // skip blank lines (e.g.: comments.)
+                while (string.IsNullOrEmpty(_lines[jumpIndex]) && jumpIndex < _lines.Length)
+                    jumpIndex++;
                     
-                _labelToLine.Add(label, jumpIndex);
+                _labelToLine.Add(label, jumpIndex + 1); // +1 index to line. 
                 _skipLine[index] = true;
             }
 
