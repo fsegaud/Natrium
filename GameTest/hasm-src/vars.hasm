@@ -3,6 +3,7 @@ define  $SCR_H          8
 define  $GRAPH_BG       32
 define  $GRAPH_BORDER   9608
 define  $GRAPH_PLAYER   64
+define  $GRAPH_SEED     42
 
 define  $KEY_UP         38
 define  $KEY_DOWN       40
@@ -15,6 +16,8 @@ define  $py             r1
 define  $i              r2
 define  $stop           r3
 define  $score          r7
+define  $sx             r8
+define  $sy             r9
 define  $screen_i       d0.0
 define  $screen_v       d0.1
 define  $keyboard       d1.0

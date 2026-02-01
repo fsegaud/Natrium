@@ -2,8 +2,8 @@
 @inc graphics.hasm
 @inc input.hasm
 
-@req registers 6
-@req stack     1
+@req registers 10
+@req stack     8
 @req devices   2
 
 _main:
@@ -11,13 +11,36 @@ _main:
     mov $px 11
     mov $py 3
     mov $score 0
+    jal _spawn_seed
     
     _gameloop:
         jal   input_process_key
+        jal   _check_seed
         jal   graphics_draw
         yield
-        inc   $score
         j     _gameloop
+        
+_check_seed:
+    eq   r4 $px $sx
+    eq   r5 $py $sy
+    add  r4 r4  r5
+    bne  ra r4  2 # x and y are not equal
+    inc  $score
+    push ra
+    jal  _spawn_seed
+    pop  ra
+    j   ra
+# _check_seed
+
+_spawn_seed:
+    mov  $sx $SCR_W
+    sub  $sx $sx 2
+    rndi $sx 1 $sx
+    mov  $sy $SCR_H
+    sub  $sy $sy 2
+    rndi $sy 1 $sy
+    j ra
+# _spawn_seed
 
 _end:
     ret

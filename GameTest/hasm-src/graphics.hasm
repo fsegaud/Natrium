@@ -3,6 +3,7 @@ graphics_draw:
     jal  graphics_draw_background
     jal  graphics_draw_borders
     jal  graphics_draw_player
+    jal  graphics_draw_seed
     jal  graphics_draw_score
     pop  ra
     j    ra
@@ -64,6 +65,14 @@ graphics_draw_player:
     wd  $screen_v $GRAPH_PLAYER
     j ra
 # graphics_draw_player
+
+graphics_draw_seed:
+    mul $i  $sy   $SCR_W
+    add $i  $i    $sx
+    wd  $screen_i $i
+    wd  $screen_v $GRAPH_SEED
+    j ra
+# graphics_draw_seed
 
 graphics_draw_score:
     push ra

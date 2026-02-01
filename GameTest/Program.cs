@@ -16,7 +16,7 @@ public static class Program
             return;
         }
         
-        Hasm.Processor processor = new Hasm.Processor(numDevices: 2);
+        Hasm.Processor processor = new Hasm.Processor(16, 16, 2);
         VirtualScreen? screen = processor.PlugDevice(0, new VirtualScreen(24, 8));
         VirtualKeyboard? keyboard = processor.PlugDevice(1, new VirtualKeyboard());
         processor.Load(program, debugCallback);
