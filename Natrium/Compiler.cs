@@ -17,7 +17,7 @@ namespace Natrium
         
         public  Result LastError { get; private set; }
         
-        public Func<string, string?>? ResolveInclusion { get; set; }
+        public IInclusionResolver? InclusionResolver { get; set; }
         
         public Program? Compile(string input, BuildTarget buildTarget = BuildTarget.Debug)
         {
@@ -211,7 +211,7 @@ namespace Natrium
             if (_skipLine[index])
                 return true;
             
-            if (ResolveInclusion == null)
+            if (InclusionResolver == null)
             {
                 LastError = new Result(Error.NoInclusionResolverProvided, index + 1);
                 return false;
@@ -223,7 +223,7 @@ namespace Natrium
                 string opt = match.Groups["opt"].Value;
                 string src =  match.Groups["src"].Value;
 
-                string? includeContent = ResolveInclusion(src);
+                string? includeContent = InclusionResolver.ResolveInclusion(src);
                 if (string.IsNullOrEmpty(includeContent))
                 {
                     LastError = new Result(Error.FileNotFound, index + 1);

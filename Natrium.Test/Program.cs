@@ -28,7 +28,7 @@ static class Program
         }
         
         Compiler compiler = new Compiler();
-        compiler.ResolveInclusion = ResolveInclusion;
+        compiler.InclusionResolver = new DirectoryInclusionResolver("src");
         Processor processor = new Processor(8, 8, 2);
         processor.PlugDevice(0, new TestDevice());
 
@@ -95,25 +95,5 @@ static class Program
             Console.WriteLine($"All tests passed.");
 
         return failures;
-    }
-
-    private static string? ResolveInclusion(string filename)
-    {
-        try
-        {
-            if (!filename.Contains('.'))
-                filename = $"{filename}.na";
-            string str = File.ReadAllText(Path.Combine("src", filename));
-            return str;
-        }
-        catch (IOException)
-        {
-            return null;
-        }
-        catch (Exception e)
-        {
-            Console.Error.WriteLine(e);
-            throw;
-        }
     }
 }

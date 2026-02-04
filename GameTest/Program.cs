@@ -9,7 +9,7 @@ public static class Program
         Action<Natrium.DebugData>? debugCallback = args.Contains("--trace") || args.Contains("-t") ? ConsoleHelper.DebugCallback : null;
         
         Natrium.Compiler compiler = new Natrium.Compiler();
-        compiler.ResolveInclusion = ResolveInclusion;
+        compiler.InclusionResolver = new Natrium.DirectoryInclusionResolver("src");
         Natrium.Program? program = compiler.Compile(File.ReadAllText(SrcFile));
         if (program == null)
         {
@@ -43,26 +43,6 @@ public static class Program
         if (processor.HasError)
         {
             ConsoleHelper.PrintFailedTest(SrcFile, processor.LastError, "Runtime");
-        }
-    }
-    
-    private static string? ResolveInclusion(string filename)
-    {
-        try
-        {
-            if (!filename.Contains('.'))
-                filename = $"{filename}.na";
-            string str = File.ReadAllText(Path.Combine(Path.GetDirectoryName(SrcFile) ?? string.Empty, filename));
-            return str;
-        }
-        catch (IOException)
-        {
-            return null;
-        }
-        catch (Exception e)
-        {
-            Console.Error.WriteLine(e);
-            throw;
         }
     }
 }
