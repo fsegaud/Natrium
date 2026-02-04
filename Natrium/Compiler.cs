@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.IO;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 
@@ -42,6 +41,7 @@ namespace Natrium
                 succeed &= Check(ParseSpaceAndTabs(index));
                 succeed &= Check(ParseComments(index));
                 succeed &= Check(ParseIncludes(index));
+                succeed &= Check(ParseSpaceAndTabs(index));
                 
                 // Check if include added new lines.
                 if (_skipLine.Length != _lines.Length)
@@ -210,16 +210,18 @@ namespace Natrium
         {
             if (_skipLine[index])
                 return true;
-                
+            
+            if (ResolveInclusion == null)
+            {
+                LastError = new Result(Error.NoInclusionResolverProvided, index + 1);
+                return false;
+            }
+            
             Match match = RegexCollection.Include.Match(_lines[index]);
             if (match.Success)
             {
+                string opt = match.Groups["opt"].Value;
                 string src =  match.Groups["src"].Value;
-                if (ResolveInclusion == null)
-                {
-                    LastError = new Result(Error.NoInclusionResolverProvided, index + 1);
-                    return false;
-                }
 
                 string? includeContent = ResolveInclusion(src);
                 if (string.IsNullOrEmpty(includeContent))
@@ -228,11 +230,23 @@ namespace Natrium
                     return false;
                 }
 
-                string[] includeLines = includeContent.Split("\n");
-                string[] newLines = new string[_lines.Length + includeLines.Length];
-                Array.Copy(_lines, 0, newLines, 0, _lines.Length);
-                Array.Copy(includeLines, 0, newLines, _lines.Length, includeLines.Length);
-                _lines = newLines;
+                if (opt == "include")
+                {
+                    string[] includeLines = includeContent.Split("\n");
+                    string[] newLines = new string[_lines.Length + includeLines.Length];
+                    Array.Copy(_lines, 0, newLines, 0, _lines.Length);
+                    Array.Copy(includeLines, 0, newLines, _lines.Length, includeLines.Length);
+                    _lines = newLines;
+                }
+                else if (opt == "patch")
+                {
+                    string[] includeLines = includeContent.Split("\n");
+                    string[] newLines = new string[_lines.Length + includeLines.Length];
+                    Array.Copy(_lines, 0, newLines, 0, index + 1);
+                    Array.Copy(includeLines, 0, newLines, index + 1, includeLines.Length);
+                    Array.Copy(_lines, index + 1, newLines, index + 1 + includeLines.Length, _lines.Length - index - 1);
+                    _lines = newLines;
+                }
 
                 _skipLine[index] = true;
             }
@@ -1029,7 +1043,7 @@ namespace Natrium
             internal static readonly Regex Comments = new Regex(@"^[^;]*(?<com>;+.*)$");
             internal static readonly Regex Defines = new Regex(@"^.define\s+(?<alias>\$[A-Za-z0-9_]+)\s(?<dest>(?:r\d+|d\d+\.\d+|-?\d+[.]?\d*|r\d+\b|0x[0-9a-fA-F]+\b))$");
             internal static readonly Regex Requirements = new Regex(@"^.require\s+(?<type>registers|stack|devices|memory)\s+(?<val>\d+|0x[0-9a-fA-F]+\b)$"); 
-            internal static readonly Regex Include = new Regex(@"^.include\s+(?<src>.+\b)$"); 
+            internal static readonly Regex Include = new Regex(@"^\.(?<opt>include|patch)\s+(?<src>.+\b)$"); 
             internal static readonly Regex Labels = new Regex(@"^(?<label>[A-Za-z_][A-Za-z0-9_]+)\s*:$"); 
             internal static readonly Regex LabelJumps = new Regex(@"^(?<opt>j|jal|beq|beqal|bneq|bneqal|bne|bneal|bgt|bgtal|bgte|bgteal|blt|bltal|blte|blteal)\s+(?<label>[A-Za-z_][A-Za-z0-9_]+\b).*$");
             internal static readonly Regex LabelRegisters = new Regex(@"^ra|r\d+$");
