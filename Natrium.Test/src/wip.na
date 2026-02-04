@@ -1,43 +1,9 @@
-# rnd
-mov     r1 0
-_loop_0:
-    rnd r0 0 1
-    blt _error  r0 0
-    bgt _error  r0 1
-    inc r1
-    blt _loop_0 r1 10
+.require registers 8
 
-mov     r1 0
-_loop_1:
-    rnd r0 -1 0
-    blt _error  r0 -1
-    bgt _error  r0 0
-    inc r1
-    blt _loop_1 r1 10
-    
-#rndi
-mov     r1 0
-_loop_2:
-    rndi r0 0 1
-    beq _success_2  r0 0
-    beq _success_2  r0 1
-    j   _error
-_success_2:
-    inc r1
-    blt _loop_2     r1 10
-    
-mov     r1 0
-_loop_3:
-    rndi r0 -1 0
-    beq _success_3  r0 -1
-    beq _success_3  r0 0
-    j   _error
-_success_3:
-    inc r1
-    blt _loop_3     r1 10
-    
-ret
+.define $i      r0
+.define $count  r1
 
-_error:
-    mov     r1 0
-    assert  r1 1
+; add
+add $i 1 2
+assert $i 3 ; assert result
+die

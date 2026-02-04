@@ -312,6 +312,7 @@ namespace Natrium
                     case "nop": instruction.Operation = Operation.Nop; break;
                     case "yield": instruction.Operation = Operation.Yield; break;
                     case "ret": instruction.Operation = Operation.Ret; break;
+                    case "die": instruction.Operation = Operation.Die; break;
                     default:
                     {
                         LastError = new Result(Error.OperationNotSupported, instruction);
@@ -1027,10 +1028,10 @@ namespace Natrium
         {
             internal static readonly Regex EmptyLine = new Regex(@"^[\s\t]*$");
             internal static readonly Regex MultipleSpaces = new Regex(@"\s\s+");
-            internal static readonly Regex Comments = new Regex(@"^[^#]*(?<com>#+.*)$");
-            internal static readonly Regex Defines = new Regex(@"^define\s+(?<alias>\$[A-Za-z0-9_]+)\s(?<dest>(?:r\d+|d\d+\.\d+|-?\d+[.]?\d*|r\d+\b|0x[0-9a-fA-F]+\b))$");
-            internal static readonly Regex Requirements = new Regex(@"^@req\s+(?<type>registers|stack|devices|memory)\s+(?<val>\d+|0x[0-9a-fA-F]+\b)$"); 
-            internal static readonly Regex Include = new Regex(@"^@inc\s+(?<src>.+\b)$"); 
+            internal static readonly Regex Comments = new Regex(@"^[^;]*(?<com>;+.*)$");
+            internal static readonly Regex Defines = new Regex(@"^.define\s+(?<alias>\$[A-Za-z0-9_]+)\s(?<dest>(?:r\d+|d\d+\.\d+|-?\d+[.]?\d*|r\d+\b|0x[0-9a-fA-F]+\b))$");
+            internal static readonly Regex Requirements = new Regex(@"^.require\s+(?<type>registers|stack|devices|memory)\s+(?<val>\d+|0x[0-9a-fA-F]+\b)$"); 
+            internal static readonly Regex Include = new Regex(@"^.include\s+(?<src>.+\b)$"); 
             internal static readonly Regex Labels = new Regex(@"^(?<label>[A-Za-z_][A-Za-z0-9_]+)\s*:$"); 
             internal static readonly Regex LabelJumps = new Regex(@"^(?<opt>j|jal|beq|beqal|bneq|bneqal|bne|bneal|bgt|bgtal|bgte|bgteal|blt|bltal|blte|blteal)\s+(?<label>[A-Za-z_][A-Za-z0-9_]+\b).*$");
             internal static readonly Regex LabelRegisters = new Regex(@"^ra|r\d+$");
@@ -1039,7 +1040,7 @@ namespace Natrium
             internal static readonly Regex JumpOperations = new Regex(@"^(?<opt>j|jal)\s+(?<opd>r\d+\b|ra|[1-9]\d*\b|0x[0-9a-fA-F]+\d*\b)$");
             internal static readonly Regex BranchingOperations = new Regex(@"^(?<opt>beq|beqal|bneq|bneqal|bne|bneal|bgt|bgtal|bgte|bgteal|blt|bltal|blte|blteal)\s+(?<opd>r\d+\b|ra|sp|[1-9]\d*\b|0x[0-9a-fA-F]+\b)\s+(?<opl>-?\d+[.]?\d*|r\d+\b|0x[0-9a-fA-F]+\b|ra|sp)\s+(?<opr>-?\d+[.]?\d*|r\d+\b|0x[0-9a-fA-F]+\b|ra|sp)$");
             internal static readonly Regex StackOperations = new Regex(@"^(?<opt>push|pop|peek)\s+(?<opd>r\d+\b|0x[0-9a-fA-F]+\b|ra|sp)$");
-            internal static readonly Regex SelfOperations = new Regex(@"^(?<opt>nop|ret|yield)$");
+            internal static readonly Regex SelfOperations = new Regex(@"^(?<opt>nop|ret|die|yield)$");
             internal static readonly Regex DestinationOperations = new Regex(@"^(?<opt>inc|dec)\s+(?<opd>r\d+\b|ra|sp)$"); 
             internal static readonly Regex UnaryOperations = new Regex(@"^(?<opt>mov|sqrt|cos|sin|tan|acos|asin|atan|assert)\s+(?<opd>r\d+\b||ra|sp)\s+(?<opl>-?\d+[.]?\d*|r\d+\b|0x[0-9a-fA-F]+\b|ra|sp)$");
             internal static readonly Regex BinaryOperations = new Regex(@"^(?<opt>add|sub|mul|div|mod|pow|rnd|rndi|round|apx|min|max|eq|ne|neq|gt|gte|lt|lte)\s+(?<opd>r\d+\b|ra|sp)\s+(?<opl>-?\d+[.]?\d*|r\d+\b|0x[0-9a-fA-F]+\b|ra|sp)\s+(?<opr>-?\d+[.]?\d*|r\d+\b|0x[0-9a-fA-F]+\b|ra|sp)$");

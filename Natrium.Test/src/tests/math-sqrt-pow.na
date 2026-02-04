@@ -1,6 +1,4 @@
-@req registers 1
-
-# sqrt
+; sqrt
 sqrt    r0 0
 assert  r0 0
 sqrt    r0 4
@@ -8,7 +6,7 @@ assert  r0 2
 sqrt    r0 0x4
 assert  r0 2
 
-# pow
+; pow
 pow r0 2 2
 assert r0 4
 pow r0 -2 2

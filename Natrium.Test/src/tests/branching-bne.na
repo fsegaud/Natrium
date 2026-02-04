@@ -1,6 +1,6 @@
-@req registers 2
 
-# bne
+
+; bne
 mov     r0 0
 mov     r1 0
 bne     8 r0 0
@@ -35,7 +35,7 @@ label8:
 assert  r0 0
 assert  r1 1
 
-# bneal
+; bneal
 mov     r0 0
 mov     r1 0
 bneal   43 r0 0

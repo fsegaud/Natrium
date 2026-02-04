@@ -1,5 +1,3 @@
-@req registers 2
-
 _cos:
     cos     r0      3.141592653589793
     apx     r0  r0  -1

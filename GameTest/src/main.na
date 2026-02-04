@@ -1,13 +1,13 @@
-@inc vars.na
-@inc graphics.na
-@inc input.na
+.include vars.na
+.include graphics.na
+.include input.na
 
-@req registers 10
-@req stack     8
-@req devices   2
+.require registers 10
+.require stack     8
+.require devices   2
 
 _main:
-    # initial player position
+    ; initial player position
     mov $px 11
     mov $py 3
     mov $score 0
@@ -24,13 +24,13 @@ _check_seed:
     eq   r4 $px $sx
     eq   r5 $py $sy
     add  r4 r4  r5
-    bne  ra r4  2 # x and y are not equal
+    bne  ra r4  2 ; x and y are not equal
     inc  $score
     push ra
     jal  _spawn_seed
     pop  ra
     j   ra
-# _check_seed
+; _check_seed
 
 _spawn_seed:
     mov  $sx $SCR_W
@@ -40,7 +40,7 @@ _spawn_seed:
     sub  $sy $sy 2
     rndi $sy 1 $sy
     j ra
-# _spawn_seed
+; _spawn_seed
 
 _end:
     ret

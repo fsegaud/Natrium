@@ -58,6 +58,7 @@ namespace Natrium
         
         Assert = 100,
         
+        Die = 999,
         Ret = 1000,
     }
 }

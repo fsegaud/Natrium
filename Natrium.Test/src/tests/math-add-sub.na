@@ -1,9 +1,7 @@
-@req registers 3
-
 mov     r1 1.5
 mov     r2 -0.5
 
-# add
+; add
 add     r0 0 0
 assert  r0 0
 add     r0 2 3
@@ -19,7 +17,7 @@ assert  r0 5
 add     r0 r1 r2
 assert  r0 1
 
-# sub
+; sub
 sub     r0 0 0
 assert  r0 0
 sub     r0 2 3

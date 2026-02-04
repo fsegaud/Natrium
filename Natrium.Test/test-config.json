@@ -33,6 +33,10 @@
       "SourceFile": "src/tests/ret.na"
     },
     {
+      "SourceFile": "src/tests/die.na",
+      "RuntimeError": "DiedInPain"
+    },
+    {
       "SourceFile": "src/tests/yield.na"
     },
     {

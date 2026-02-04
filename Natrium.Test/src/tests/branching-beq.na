@@ -1,6 +1,6 @@
-@req registers 2
 
-# beq
+
+; beq
 mov     r0 0
 mov     r1 0
 beq     8 r0 1
@@ -35,7 +35,7 @@ label3:
 assert  r0 0
 assert  r1 1
 
-# beqal
+; beqal
 mov     r0 0
 mov     r1 0
 beqal   43 r0 1

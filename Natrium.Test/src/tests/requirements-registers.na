@@ -1,2 +1,2 @@
-@req registers 0    # pass
-@req registers 1024 # fail
+.require registers 0    ; pass
+.require registers 1024 ; fail

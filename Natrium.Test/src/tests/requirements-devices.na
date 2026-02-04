@@ -1,2 +1,2 @@
-@req devices 0    # pass
-@req devices 1024 # fail
+.require devices 0    ; pass
+.require devices 1024 ; fail

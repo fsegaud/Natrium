@@ -1,5 +1,3 @@
-@req registers 1
-
 apx     r0  0   0
 assert  r0  1
 apx     r0  0   1

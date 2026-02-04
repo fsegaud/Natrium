@@ -780,6 +780,12 @@ namespace Natrium
                         _instructionPointer = int.MaxValue - 1;
                         breakLoop = true;
                         break;
+                    
+                    case Operation.Die:
+                        _instructionPointer = int.MaxValue - 1;
+                        breakLoop = true;
+                        LastError = new Result(Error.DiedInPain, instruction);
+                        break;
 
                     default:
                         LastError = new Result(Error.OperationNotImplemented, instruction);

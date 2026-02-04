@@ -1,6 +1,3 @@
-@req registers 1
-@req devices 1
-
 wd d0.2 3
 rd r0 d0.2
 assert r0 6

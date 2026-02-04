@@ -1,9 +1,7 @@
-@req registers 3
-
 mov     r1 1.5
 mov     r2 -0.5
 
-# eq
+; eq
 eq      r0 2 3
 assert  r0 0
 eq      r0 2 2
@@ -25,7 +23,7 @@ assert  r0 0
 eq      r0 r2 r2
 assert  r0 1
 
-# ne
+; ne
 ne      r0 2 3
 assert  r0 1
 ne      r0 2 2
@@ -47,7 +45,7 @@ assert  r0 1
 ne      r0 r2 r2
 assert  r0 0
 
-# gt
+; gt
 gt      r0 2 3
 assert  r0 0
 gt      r0 2 2
@@ -79,7 +77,7 @@ assert  r0 0
 gt      r0 r2 r1
 assert  r0 0
 
-# gte
+; gte
 gte     r0 2 3
 assert  r0 0
 gte     r0 2 2
@@ -111,7 +109,7 @@ assert  r0 1
 gte     r0 r2 r1
 assert  r0 0
 
-# lt
+; lt
 lt      r0 2 3
 assert  r0 1
 lt      r0 2 2
@@ -143,7 +141,7 @@ assert  r0 0
 lt      r0 r2 r1
 assert  r0 1
 
-# lte
+; lte
 lte     r0 2 3
 assert  r0 1
 lte     r0 2 2

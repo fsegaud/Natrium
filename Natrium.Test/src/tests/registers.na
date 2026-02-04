@@ -1,6 +1,4 @@
-@req registers 2
-
-# mov
+; mov
 assert  r0 0
 mov     r0 1
 assert  r0 1

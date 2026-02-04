@@ -1,6 +1,4 @@
-@req registers 3
-
-# min
+; min
 min     r0  1   2
 assert  r0  1   
 min     r0  -1 -2
@@ -12,7 +10,7 @@ mov     r2  2
 min     r0  r1  r2
 assert  r0  1   
 
-# max
+; max
 max     r0  1   2
 assert  r0  2  
 max     r0  -1  -2

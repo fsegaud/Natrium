@@ -1,5 +1,4 @@
-@req registers 2
-@inc tests/libtestinc.na
+.include tests/libtestinc.na
 
 libtestmath_v2len:
     pop  r0

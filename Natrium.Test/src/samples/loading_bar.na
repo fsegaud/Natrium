@@ -1,45 +1,45 @@
-@req    registers   3
-@req    devices     2
+.require  registers   3
+.require  devices     2
 
-#config
-define   $length     6
-define   $sleep      100
+; config
+.define   $length     6
+.define   $sleep      100
 
-# aliases
-define   $i          r0
-define   $ii         r1
-define   $cycles     r2
-define   $screen_c   d1.0
-define   $screen_r   d1.1
+; aliases
+.define   $i          r0
+.define   $ii         r1
+.define   $cycles     r2
+.define   $screen_c   d1.0
+.define   $screen_r   d1.1
 
-# args
+; args
 pop     $cycles
 
-# code
+; code
 main: 
     mov $i 0
-    loop0: # for $i 0..len
+    loop0: ; for $i 0..len
         wd  $screen_r 0
-        wd  $screen_c 91 # '['
+        wd  $screen_c 91 ; '['
         
         mov $ii 0
-        loop1: # for $ii 0..i
-            wd  $screen_c 32 # ' '
+        loop1: ; for $ii 0..i
+            wd  $screen_c 32 ; ' '
             inc $ii
             blte loop1 $ii $i
         
-        wd $screen_c 61 # '='
+        wd $screen_c 61 ; '='
         mov $ii $i
-        loop2: # for $ii i..len
-            wd  $screen_c 32 # ' '
+        loop2: ; for $ii i..len
+            wd  $screen_c 32 ; ' '
             inc $ii
             blte loop2 $ii $length
         
-        wd  $screen_c 93 # ']'
+        wd  $screen_c 93 ; ']'
         sleep $sleep
         inc $i
         blt loop0 $i $length
     
-    # loop if needed
+    ; loop if needed
     dec $cycles
     bgt main $cycles 0

@@ -1,4 +1,4 @@
-ret # start with a 'ret' to avoid executing functions after main file end.
+ret ; start with a 'ret' to avoid executing functions after main file end.
 
 math_v2len:
     pop  r0

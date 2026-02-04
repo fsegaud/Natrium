@@ -1,4 +1,4 @@
-@inc tests/libtestmath.na
+.include tests/libtestmath.na
 
 main:
     mov     r0 3

@@ -30,9 +30,8 @@ namespace Natrium
         NullPointer,
         DoubleFree,
 #endif
-        
-        AssertFailed = 800,
-        
-        WatchdogBark = 900,
+        DiedInPain = 300,
+        AssertFailed,
+        WatchdogBark,
     }
 }

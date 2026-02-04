@@ -1,6 +1,4 @@
-@req registers 2
-
-# rnd
+; rnd
 mov     r1 0
 _loop_0:
     rnd r0 0 1
@@ -17,7 +15,7 @@ _loop_1:
     inc r1
     blt _loop_1 r1 10
     
-#rndi
+; rndi
 mov     r1 0
 _loop_2:
     rndi r0 0 1
