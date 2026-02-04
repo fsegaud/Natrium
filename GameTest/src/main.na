@@ -7,12 +7,15 @@
 .require devices   2
 
 _main:
-    ; initial player position
-    mov $px 11
-    mov $py 3
+    ; init
+    mov $px 1 ; player pos
+    mov $py 1
+    
     mov $score 0
+    jal graphics_init
     jal _spawn_seed
     
+    ; update
     _gameloop:
         jal   input_process_key
         jal   _check_seed
@@ -33,10 +36,10 @@ _check_seed:
 ; _check_seed
 
 _spawn_seed:
-    mov  $sx $SCR_W
+    mov  $sx $scr_w
     sub  $sx $sx 2
     rndi $sx 1 $sx
-    mov  $sy $SCR_H
+    mov  $sy $scr_h
     sub  $sy $sy 2
     rndi $sy 1 $sy
     j ra

@@ -1,5 +1,5 @@
 input_process_key:
-    rd  r4   $keyboard
+    rd  r4   $d_kb
     beq _end r4 $KEY_Q
     
     ; apply movement
@@ -14,11 +14,11 @@ input_process_key:
     
     ; clamp to borders
     max $px $px 1
-    mov r4  $SCR_W
+    mov r4  $scr_w
     sub r4  r4  2
     min $px $px r4
     max $py $py 1
-    mov r4  $SCR_H
+    mov r4  $scr_h
     sub r4  r4  2
     min $py $py r4
     j   ra

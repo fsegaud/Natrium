@@ -1,6 +1,3 @@
-.define  $SCR_W          24
-.define  $SCR_H          8
-.define  $GRAPH_BG       32
 .define  $GRAPH_BORDER   9608
 .define  $GRAPH_PLAYER   64
 .define  $GRAPH_SEED     42
@@ -18,6 +15,11 @@
 .define  $score          r7
 .define  $sx             r8
 .define  $sy             r9
-.define  $screen_i       d0.0
-.define  $screen_v       d0.1
-.define  $keyboard       d1.0
+.define  $scr_w          r10
+.define  $scr_h          r11
+.define  $d_scr_i       d0.0
+.define  $d_scr_v       d0.1
+.define  $d_scr_c       d0.2
+.define  $d_scr_w       d0.3
+.define  $d_scr_h       d0.4
+.define  $d_kb          d1.0

@@ -1,6 +1,11 @@
+graphics_init:
+    rd $scr_w $d_scr_w
+    rd $scr_h $d_scr_h
+    j  ra
+
 graphics_draw:
     push ra
-    jal  graphics_draw_background
+    wd   $d_scr_c 0 ; clear screen
     jal  graphics_draw_borders
     jal  graphics_draw_player
     jal  graphics_draw_seed
@@ -9,68 +14,57 @@ graphics_draw:
     j    ra
 ; graphics_draw
 
-graphics_draw_background:
-    mov $i 0
-    mul $stop $SCR_W    $SCR_H
-    graphics_draw_background_loop:
-        wd    $screen_i $i
-        wd    $screen_v $GRAPH_BG
-        inc   $i
-        bne   graphics_draw_background_loop $i $stop
-    j ra
-; graphics_draw_background
-
 graphics_draw_borders:
     mov     $i        0
-    mov     $stop     $SCR_W
+    mov     $stop     $scr_w
     graphics_draw_borders_upper:
-        wd  $screen_i $i
-        wd  $screen_v $GRAPH_BORDER
+        wd  $d_scr_i $i
+        wd  $d_scr_v $GRAPH_BORDER
         inc $i
         blt graphics_draw_borders_upper $i $stop               
     
-    mul     $stop     $SCR_H $SCR_W
-    sub     $i        $stop  $SCR_W
+    mul     $stop     $scr_h $scr_w
+    sub     $i        $stop  $scr_w
     graphics_draw_borders_lower:
-        wd  $screen_i $i
-        wd  $screen_v $GRAPH_BORDER
+        wd  $d_scr_i $i
+        wd  $d_scr_v $GRAPH_BORDER
         inc $i
         blt graphics_draw_borders_lower $i $stop           
     
     mov     $i        0
-    mul     $stop     $SCR_H $SCR_W
-    sub     $stop     $stop  $SCR_W
+    mul     $stop     $scr_h $scr_w
+    sub     $stop     $stop  $scr_w
     graphics_draw_borders_left:
-        wd  $screen_i $i
-        wd  $screen_v $GRAPH_BORDER
-        add $i        $i     $SCR_W
+        wd  $d_scr_i $i
+        wd  $d_scr_v $GRAPH_BORDER
+        add $i        $i     $scr_w
         blt graphics_draw_borders_left $i $stop 
     
-    mov     $i        $SCR_W
+    mov     $i        $scr_w
     dec     $i
-    mul     $stop     $SCR_H $SCR_W
+    mul     $stop     $scr_h $scr_w
     dec     $stop
     graphics_draw_borders_right:
-        wd  $screen_i $i
-        wd  $screen_v $GRAPH_BORDER
-        add $i        $i     $SCR_W
+        wd  $d_scr_i $i
+        wd  $d_scr_v $GRAPH_BORDER
+        add $i        $i     $scr_w
         blt graphics_draw_borders_right $i $stop
     j ra
 ; graphics_draw_borders
 
 graphics_draw_player:
-    mul $i  $py   $SCR_W
+    mul $i  $py   $scr_w
     add $i  $i    $px
-    wd  $screen_i $i
-    wd  $screen_v $GRAPH_PLAYER
+    wd  $d_scr_i $i
+    wd  $d_scr_v $GRAPH_PLAYER
     j ra
 ; graphics_draw_player
 
 graphics_draw_seed:
-    mul $i  $sy   $SCR_W
+    mul $i  $sy   $scr_w
     add $i  $i    $sx
-    wd  $screen_i $i
-    wd  $screen_v $GRAPH_SEED
+    wd  $d_scr_i $i
+    wd  $d_scr_v $GRAPH_SEED
     j ra
 ; graphics_draw_seed
 
@@ -79,42 +73,42 @@ graphics_draw_score:
     
     ; score label
     mov $i        0
-    wd  $screen_i $i
-    wd  $screen_v 0x53 ; S
+    wd  $d_scr_i $i
+    wd  $d_scr_v 0x53 ; S
     inc $i
-    wd  $screen_i $i
-    wd  $screen_v 0x63 ; c
+    wd  $d_scr_i $i
+    wd  $d_scr_v 0x63 ; c
     inc $i
-    wd  $screen_i $i
-    wd  $screen_v 0x6f ; o
+    wd  $d_scr_i $i
+    wd  $d_scr_v 0x6f ; o
     inc $i
-    wd  $screen_i $i
-    wd  $screen_v 0x72 ; r
+    wd  $d_scr_i $i
+    wd  $d_scr_v 0x72 ; r
     inc $i
-    wd  $screen_i $i
-    wd  $screen_v 0x65 ; e
+    wd  $d_scr_i $i
+    wd  $d_scr_v 0x65 ; e
     inc $i
-    wd  $screen_i $i
-    wd  $screen_v 0x3a ; :
+    wd  $d_scr_i $i
+    wd  $d_scr_v 0x3a ; :
     
     ; padding
     inc $i
-    wd  $screen_i $i
-    wd  $screen_v 0x30 ; 0
+    wd  $d_scr_i $i
+    wd  $d_scr_v 0x30 ; 0
     inc $i
-    wd  $screen_i $i
-    wd  $screen_v 0x30 ; 0
+    wd  $d_scr_i $i
+    wd  $d_scr_v 0x30 ; 0
     inc $i
-    wd  $screen_i $i
-    wd  $screen_v 0x30 ; 0
+    wd  $d_scr_i $i
+    wd  $d_scr_v 0x30 ; 0
     
     ; score value
     mov r4 $score
     graphics_draw_score_loop:
         mod r5 r4 10   ; TODO: floor/trunc r5
         add r5 r5 0x30 ; ascii
-        wd  $screen_i $i
-        wd  $screen_v r5     
+        wd  $d_scr_i $i
+        wd  $d_scr_v r5     
         div r4 r4 10
         dec $i
         bgte graphics_draw_score_loop r4 1

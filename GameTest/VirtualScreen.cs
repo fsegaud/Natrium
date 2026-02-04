@@ -1,7 +1,10 @@
 namespace GameTest;
 
-// 0 -> Index
-// 1 -> Value
+// 0 -> Index (W)
+// 1 -> Value (W)
+// 2 -> Clear (W)
+// 3 -> Width (R)
+// 4 -> Height (R)
 public class VirtualScreen(int width, int height) : Natrium.IDevice
 {
     private uint _nextIndex;
@@ -19,6 +22,14 @@ public class VirtualScreen(int width, int height) : Natrium.IDevice
                 if (_nextIndex >= Data.Length)
                     return false;
                 value = Data[_nextIndex];
+                break;
+            
+            case 3 :
+                value = Width;
+                break;
+            
+            case 4 :
+                value = Height;
                 break;
             
             default:
@@ -42,6 +53,10 @@ public class VirtualScreen(int width, int height) : Natrium.IDevice
                 if (_nextIndex >= Data.Length)
                     return false;
                 Data[_nextIndex] = (char)value;
+                break;
+            
+            case 2 :
+                Array.Fill(Data, ' ');
                 break;
 
             default:
