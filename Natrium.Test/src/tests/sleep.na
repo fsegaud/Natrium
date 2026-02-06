@@ -1,4 +1,4 @@
 inc r0
 sleep 100
 inc r0
-assert r0 2
+!assert r0 2

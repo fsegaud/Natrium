@@ -57,6 +57,7 @@ namespace Natrium
 #endif
         
         Assert = 100,
+        Breakpoint,
         
         Die = 999,
         Ret = 1000,

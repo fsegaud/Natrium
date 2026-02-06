@@ -1,12 +1,9 @@
-.require registers 2
-
-.define $i      r0
-.define $beast  666
-
-; add
-add  $i  444    221
-bne  end $beast 666
-    die
-    
-end:
-    ret
+nop
+nop
+!break
+mov r1 2
+add r0 r1 3
+!assert r0 5
+nop
+nop
+ret

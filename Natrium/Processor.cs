@@ -24,12 +24,13 @@ namespace Natrium
         private uint _frame;
         
         private Program? _program;
-        private Action<DebugData>? _debugCallback;
-
+        
         public bool IsFinished => HasError || _instructionPointer >= _program?.Instructions.Length;
 
         public bool HasError => LastError.Error != Error.Success;
         public  Result LastError { get; private set; }
+        
+        public  Action<DebugData>? DebugCallback { get; set; }
         
 #if NATRIUM_FEATURE_MEMORY
         public Processor(uint numRegisters = 8u, uint stackLength = 16u, uint memoryLength = 32u, uint numDevices = 0u, int frequencyHz = 0)
@@ -276,11 +277,12 @@ namespace Natrium
 
             return true;
         }
+
+        public bool BreakpointReached;
         
-        public void Load(Program program, Action<DebugData>? debugCallback = null, int? watchdog = null, bool unplugDevices = false)
+        public void Load(Program program, int? watchdog = null, bool unplugDevices = false)
         {
             _program = program;
-            _debugCallback = debugCallback;
             _sleepTime = -1;
             _sleepWatch.Stop();
             _watchdog = watchdog;
@@ -326,6 +328,7 @@ namespace Natrium
             bool breakLoop = false;
             for (int index = _instructionPointer; index < _program.Instructions.Length && !breakLoop && frames > 0; index++, _instructionPointer++, _frame++, frames--, _watchdog--)
             {
+                BreakpointReached = false;
                 Instruction instruction = _program.Instructions[index];
 
                 double destinationValue;
@@ -554,13 +557,17 @@ namespace Natrium
                         break;
                     
                     case Operation.Assert:
-                        if (!TryGetDestination(ref instruction, out destinationValue))
-                            return false;
-                        if (Math.Abs(destinationValue - leftOperandValue) > double.Epsilon * 10000000)
+                        if (_program.BuildTarget == BuildTarget.Debug)
                         {
-                            LastError = new Result(Error.AssertFailed, instruction);
-                            return false;
+                            if (!TryGetDestination(ref instruction, out destinationValue))
+                                return false;
+                            if (Math.Abs(destinationValue - leftOperandValue) > double.Epsilon * 10000000)
+                            {
+                                LastError = new Result(Error.AssertFailed, instruction);
+                                return false;
+                            }
                         }
+
                         break;
 
                     case Operation.Jump:
@@ -786,6 +793,15 @@ namespace Natrium
                         breakLoop = true;
                         LastError = new Result(Error.DiedInPain, instruction);
                         break;
+                    
+                    case Operation.Breakpoint:
+                        if (_program.BuildTarget == BuildTarget.Debug)
+                        {
+                            breakLoop = true;
+                            BreakpointReached = true;
+                        }
+
+                        break;
 
                     default:
                         LastError = new Result(Error.OperationNotImplemented, instruction);
@@ -795,7 +811,7 @@ namespace Natrium
                 if (LastError.Error != Error.Success)
                     return false;
                 
-                _debugCallback?.Invoke(GenerateDebugData(_frame, ref instruction));
+                DebugCallback?.Invoke(GenerateDebugData(_frame, ref instruction));
 
                 if (_watchdog <= 0)
                 {

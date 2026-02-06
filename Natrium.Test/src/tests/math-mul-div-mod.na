@@ -3,42 +3,42 @@ mov     r2 -0.5
 
 ; mul
 mul     r0 0 0
-assert  r0 0
+!assert  r0 0
 mul     r0 2 3
-assert  r0 6
+!assert  r0 6
 mul     r0 2 -3
-assert r0 -6
+!assert r0 -6
 mul     r0 -2 3
-assert  r0 -6
+!assert  r0 -6
 mul     r0 1.5 -0.5
-assert  r0 -0.75
+!assert  r0 -0.75
 mul     r0 0x2 0x3
-assert  r0 6
+!assert  r0 6
 mul     r0 r1 r2
-assert  r0 -0.75
+!assert  r0 -0.75
 
 ; div
 div     r0 3 2
-assert  r0 1.5
+!assert  r0 1.5
 div     r0 3 -2
-assert  r0 -1.5
+!assert  r0 -1.5
 div     r0 -3 2
-assert  r0 -1.5
+!assert  r0 -1.5
 div     r0 1.5 -0.5
-assert  r0 -3
+!assert  r0 -3
 div     r0 0x3 0x2
-assert  r0 1.5
+!assert  r0 1.5
 div     r0 r1 r2
-assert  r0 -3
+!assert  r0 -3
 
 ; mod
 mod     r0 10 10
-assert  r0 0
+!assert  r0 0
 mod     r0 12 10
-assert  r0 2
+!assert  r0 2
 mod     r0 12 -10
-assert  r0 2
+!assert  r0 2
 mod     r0 0x2 0x10
-assert  r0 2
+!assert  r0 2
 mod     r0 r1 r2
-assert  r0 0
+!assert  r0 0

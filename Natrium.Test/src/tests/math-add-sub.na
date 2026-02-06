@@ -3,32 +3,32 @@ mov     r2 -0.5
 
 ; add
 add     r0 0 0
-assert  r0 0
+!assert  r0 0
 add     r0 2 3
-assert  r0 5
+!assert  r0 5
 add     r0 2 -3
-assert  r0 -1
+!assert  r0 -1
 add     r0 -2 3
-assert  r0 1
+!assert  r0 1
 add     r0 1.5 -0.5
-assert  r0 1
+!assert  r0 1
 add     r0 0x2 0x3
-assert  r0 5
+!assert  r0 5
 add     r0 r1 r2
-assert  r0 1
+!assert  r0 1
 
 ; sub
 sub     r0 0 0
-assert  r0 0
+!assert  r0 0
 sub     r0 2 3
-assert  r0 -1
+!assert  r0 -1
 sub     r0 2 -3
-assert  r0 5
+!assert  r0 5
 sub     r0 -2 3
-assert  r0 -5
+!assert  r0 -5
 sub     r0 1.5 -0.5
-assert  r0 2
+!assert  r0 2
 sub     r0 0x2 0x3
-assert  r0 -1
+!assert  r0 -1
 sub     r0 r1 r2
-assert  r0 2
+!assert  r0 2

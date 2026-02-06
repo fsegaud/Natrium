@@ -1,49 +1,49 @@
 _cos:
     cos     r0      3.141592653589793
     apx     r0  r0  -1
-    assert  r0      1
+    !assert  r0      1
     cos     r0      1.5707963267948966
     apx     r0  r0  0
-    assert  r0      1
+    !assert  r0      1
     cos     r0      0.7852471991046711
     apx     r0  r0  0.7072135465463142
-    assert  r0      1
+    !assert  r0      1
 
 _sin:
     sin     r0      3.141592653589793
     apx     r0  r0  0
-    assert  r0      1
+    !assert  r0      1
     sin     r0      1.5707963267948966
     apx     r0  r0  1
-    assert  r0      1
+    !assert  r0      1
     sin     r0      0.7855491391268236
     apx     r0  r0  0.7072135465463142
-    assert  r0      1
+    !assert  r0      1
     
 _acos:
     acos    r0      -1
     apx     r0  r0  3.141592653589793
-    assert  r0      1
+    !assert  r0      1
     acos    r0      0
     apx     r0  r0  1.5707963267948966
-    assert  r0      1
+    !assert  r0      1
     acos    r0      1
     apx     r0  r0  0
-    assert  r0      1
+    !assert  r0      1
     acos    r0      0.7072135465463142
     apx     r0  r0  0.7852471991046711
-    assert  r0      1
+    !assert  r0      1
     
 _asin:
     asin    r0      -1
     apx     r0  r0  -1.5707963267948966
-    assert  r0      1
+    !assert  r0      1
     asin    r0      0
     apx     r0  r0  0
-    assert  r0      1
+    !assert  r0      1
     asin    r0      1
     apx     r0      r0  1.5707963267948966
-    assert  r0      1
+    !assert  r0      1
     asin    r0      0.7072135465463142
     apx     r0  r0  0.7855491391268236
-    assert  r0      1
+    !assert  r0      1

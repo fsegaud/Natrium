@@ -325,6 +325,7 @@ namespace Natrium
                     case "yield": instruction.Operation = Operation.Yield; break;
                     case "ret": instruction.Operation = Operation.Ret; break;
                     case "die": instruction.Operation = Operation.Die; break;
+                    case "!break": instruction.Operation = Operation.Breakpoint; break;
                     default:
                     {
                         LastError = new Result(Error.OperationNotSupported, instruction);
@@ -693,7 +694,7 @@ namespace Natrium
                     case "acos": instruction.Operation = Operation.ArcCosine; break;
                     case "asin": instruction.Operation = Operation.ArcSine; break;
                     case "atan": instruction.Operation = Operation.ArcTangent; break;
-                    case "assert": instruction.Operation = Operation.Assert; break;
+                    case "!assert": instruction.Operation = Operation.Assert; break;
                     default:
                     {
                         LastError = new Result(Error.OperationNotSupported, instruction);
@@ -1050,9 +1051,9 @@ namespace Natrium
             internal static readonly Regex JumpOperations = new Regex(@"^(?<opt>j|jal)\s+(?<opd>r\d+\b|ra|[1-9]\d*\b|0x[0-9a-fA-F]+\d*\b)$");
             internal static readonly Regex BranchingOperations = new Regex(@"^(?<opt>beq|beqal|bneq|bneqal|bne|bneal|bgt|bgtal|bgte|bgteal|blt|bltal|blte|blteal)\s+(?<opd>r\d+\b|ra|sp|[1-9]\d*\b|0x[0-9a-fA-F]+\b)\s+(?<opl>-?\d+[.]?\d*|r\d+\b|0x[0-9a-fA-F]+\b|ra|sp)\s+(?<opr>-?\d+[.]?\d*|r\d+\b|0x[0-9a-fA-F]+\b|ra|sp)$");
             internal static readonly Regex StackOperations = new Regex(@"^(?<opt>push|pop|peek)\s+(?<opd>r\d+\b|0x[0-9a-fA-F]+\b|ra|sp)$");
-            internal static readonly Regex SelfOperations = new Regex(@"^(?<opt>nop|ret|die|yield)$");
+            internal static readonly Regex SelfOperations = new Regex(@"^(?<opt>nop|ret|die|yield|!break)$");
             internal static readonly Regex DestinationOperations = new Regex(@"^(?<opt>inc|dec)\s+(?<opd>r\d+\b|ra|sp)$"); 
-            internal static readonly Regex UnaryOperations = new Regex(@"^(?<opt>mov|sqrt|cos|sin|tan|acos|asin|atan|assert)\s+(?<opd>r\d+\b||ra|sp)\s+(?<opl>-?\d+[.]?\d*|r\d+\b|0x[0-9a-fA-F]+\b|ra|sp)$");
+            internal static readonly Regex UnaryOperations = new Regex(@"^(?<opt>mov|sqrt|cos|sin|tan|acos|asin|atan|!assert)\s+(?<opd>r\d+\b||ra|sp)\s+(?<opl>-?\d+[.]?\d*|r\d+\b|0x[0-9a-fA-F]+\b|ra|sp)$");
             internal static readonly Regex BinaryOperations = new Regex(@"^(?<opt>add|sub|mul|div|mod|pow|rnd|rndi|round|apx|min|max|eq|ne|neq|gt|gte|lt|lte)\s+(?<opd>r\d+\b|ra|sp)\s+(?<opl>-?\d+[.]?\d*|r\d+\b|0x[0-9a-fA-F]+\b|ra|sp)\s+(?<opr>-?\d+[.]?\d*|r\d+\b|0x[0-9a-fA-F]+\b|ra|sp)$");
             internal static readonly Regex ReadDeviceOperations = new Regex(@"^(?<opt>ld)\s+(?<opd>r\d+\b)\s+(?<opl>d\d+\.\d+)$");
             internal static readonly Regex WriteDeviceOperations = new Regex(@"^(?<opt>sd)\s+(?<opd>d\d+\.\d+\b)\s+(?<opl>r\d+\b|-?\d+[.]?\d*|r\d+\b|0x[0-9a-fA-F]+\b)$");

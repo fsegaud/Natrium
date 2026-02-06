@@ -15,9 +15,9 @@ static class Program
             return -1;
         }
         
-        BuildTarget buildTarget = args.Contains("--debug") || args.Contains("-d") ? BuildTarget.Debug : BuildTarget.Release;
+        BuildTarget buildTarget = args.Contains("--release") || args.Contains("-r") ? BuildTarget.Release : BuildTarget.Debug;
         Action<DebugData>? debugCallback = args.Contains("--trace") || args.Contains("-t") ? ConsoleHelper.DebugCallback : null;
-        bool showInfo = args.Contains("--info") || args.Contains("-i");
+        bool showInfo = args.Contains("--show-info") || args.Contains("-i");
         int? watchdog = args.Contains("--no-watchdog") ? null : 0x1000;
         
         TestConfiguration? testConfiguration = TestConfiguration.Load(testConfigurationFile);
@@ -30,9 +30,11 @@ static class Program
         Compiler compiler = new Compiler();
         compiler.InclusionResolver = new DirectoryInclusionResolver("src");
         Processor processor = new Processor(8, 8, 2);
+        processor.DebugCallback = debugCallback;
         processor.PlugDevice(0, new TestDevice());
 
         int failures = 0;
+        bool interactive = false;
         foreach (var test in testConfiguration.TestDescriptors)
         {
             string srcContent;
@@ -65,7 +67,7 @@ static class Program
                 continue;
             
             // Load (and test serialization/deserialization).
-            processor.Load(Natrium.Program.FromBase64(program.ToBase64()), debugCallback, watchdog);
+            processor.Load(Natrium.Program.FromBase64(program.ToBase64()), watchdog);
             if (test.RuntimeError == Error.RequirementsNotMet && processor.LastError.Error != Error.RequirementsNotMet)
             {
                 ConsoleHelper.PrintFailedTest(test.SourceFile, processor.LastError, "Runtime");
@@ -76,7 +78,29 @@ static class Program
             // Run.
             while (!processor.IsFinished)
             {
-                processor.Run(64);
+                if (interactive)
+                {
+                    Console.WriteLine("Press any key to continue, R to resume.");
+                    var key = Console.ReadKey(true);
+                    if (key.Key == ConsoleKey.R)
+                    {
+                        interactive = false;
+                        processor.DebugCallback = debugCallback;
+                    }
+                    
+                    processor.Run(1);
+                }
+                else
+                {
+                    processor.Run(64);
+                }
+
+                if (processor.BreakpointReached)
+                {
+                    interactive = true;
+                    processor.DebugCallback = ConsoleHelper.DebugCallback;
+                    Console.WriteLine("Breakpoint reached.");
+                }
             }
             
             if (processor.LastError.Error != test.RuntimeError)

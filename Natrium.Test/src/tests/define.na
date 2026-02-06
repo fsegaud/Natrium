@@ -1,10 +1,10 @@
 .define   $one 1
 .define   $rzero r0
 mov       $rzero $one
-assert    $rzero $one
-assert    r0 1
+!assert    $rzero $one
+!assert    r0 1
 
 sd d0.2 $one
 ld $rzero d0.2
-assert r0 2
+!assert r0 2
  

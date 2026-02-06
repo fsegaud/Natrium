@@ -7,6 +7,6 @@ main:
     push    r1
     jal     libtestmath_v2len
     pop     r0
-    assert  r0 5 
-    assert  r2 3
+    !assert  r0 5 
+    !assert  r2 3
     ret

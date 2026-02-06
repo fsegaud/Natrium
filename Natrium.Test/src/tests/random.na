@@ -40,4 +40,4 @@ ret
 
 _error:
     mov     r1 0
-    assert  r1 1
+    !assert  r1 1
