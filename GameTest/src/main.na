@@ -8,8 +8,10 @@
 
 _main:
     ; init
-    mov $px 1 ; player pos
+    mov $px 1  ; player pos
     mov $py 1
+    mov $ex 16 ; enemy pos
+    mov $ey 4
     
     mov $score 0
     jal graphics_init
@@ -19,6 +21,7 @@ _main:
     _gameloop:
         jal   input_process_key
         jal   _check_seed
+        jal   _move_enemy
         jal   graphics_draw
         yield
         j     _gameloop
@@ -44,6 +47,20 @@ _spawn_seed:
     rndi $sy 1 $sy
     j ra
 ; _spawn_seed
+
+_move_enemy:
+    rndi r4 0 3 ; 25% chance moving
+    bne ra r4 0 
+    sub r4 $px $ex
+    min r4 r4 1
+    max r4 r4 -1
+    add $ex $ex r4
+    sub r5 $py $ey
+    min r5 r5 1
+    max r5 r5 -1
+    add $ey $ey r5
+    j ra
+; _move_enemy
 
 _end:
     ret

@@ -5,9 +5,10 @@ graphics_init:
 
 graphics_draw:
     push ra
-    sd   $d_scr_c 0 ; clear screen
+    sd   $d_scr_clr 0 ; clear screen
     jal  graphics_draw_borders
     jal  graphics_draw_player
+    jal  graphics_draw_enemy
     jal  graphics_draw_seed
     jal  graphics_draw_score
     pop  ra
@@ -19,16 +20,18 @@ graphics_draw_borders:
     mov     $stop     $scr_w
     sd      $d_scr_a  1
     sd      $d_scr_i  0
+    sd      $d_scr_c  0xc0 ; gray bg
     graphics_draw_borders_upper:
-        sd  $d_scr_v $GRAPH_BORDER
+        sd  $d_scr_v 0x20
         inc $i
         blt graphics_draw_borders_upper $i $stop               
     
     mul     $stop     $scr_h $scr_w
     sub     $i        $stop  $scr_w
     sd      $d_scr_i  $i
+    sd      $d_scr_c  0xc0 ; gray bg
     graphics_draw_borders_lower:
-        sd  $d_scr_v $GRAPH_BORDER
+        sd  $d_scr_v 0x20
         inc $i
         blt graphics_draw_borders_lower $i $stop   
     
@@ -38,7 +41,8 @@ graphics_draw_borders:
     sd      $d_scr_a  0
     graphics_draw_borders_left:
         sd  $d_scr_i $i
-        sd  $d_scr_v $GRAPH_BORDER
+    sd      $d_scr_c  0xc0 ; gray bg
+        sd  $d_scr_v 0x20
         add $i        $i     $scr_w
         blt graphics_draw_borders_left $i $stop 
     
@@ -48,7 +52,8 @@ graphics_draw_borders:
     dec     $stop
     graphics_draw_borders_right:
         sd  $d_scr_i $i
-        sd  $d_scr_v $GRAPH_BORDER
+        sd  $d_scr_c  0xc0 ; gray bg
+        sd  $d_scr_v 0x20
         add $i        $i     $scr_w
         blt graphics_draw_borders_right $i $stop
     j ra
@@ -58,14 +63,25 @@ graphics_draw_player:
     mul $i  $py   $scr_w
     add $i  $i    $px
     sd  $d_scr_i $i
+    sd  $d_scr_c 0x30 ; blue bg 
     sd  $d_scr_v $GRAPH_PLAYER
     j ra
 ; graphics_draw_player
+
+graphics_draw_enemy:
+    mul $i  $ey   $scr_w
+    add $i  $i    $ex
+    sd  $d_scr_i $i
+    sd  $d_scr_c 0x01 ; red 
+    sd  $d_scr_v $GRAPH_ENEMY
+    j ra
+; graphics_draw_enemy
 
 graphics_draw_seed:
     mul $i  $sy   $scr_w
     add $i  $i    $sx
     sd  $d_scr_i $i
+    sd  $d_scr_c 0x2 ; green
     sd  $d_scr_v $GRAPH_SEED
     j ra
 ; graphics_draw_seed
@@ -76,6 +92,7 @@ graphics_draw_score:
     ; score label
     sd  $d_scr_a 1   
     sd  $d_scr_i 0
+    sd  $d_scr_c 0xca ; black on white
     sd  $d_scr_v 0x53 ; S
     sd  $d_scr_v 0x63 ; c
     sd  $d_scr_v 0x6f ; o
@@ -102,3 +119,4 @@ graphics_draw_score:
     pop ra
     j ra
 ; graphics_draw_score
+
