@@ -133,6 +133,12 @@
       "CompilerError": "LabelNotFound"
     },
     {
+      "SourceFile": "src/tests/bitwise.na"
+    },
+    {
+      "SourceFile": "src/tests/bitshift.na"
+    },
+    {
       "SourceFile": "src/tests/device-mov.na",
       "CompilerError": "SyntaxError"
     },

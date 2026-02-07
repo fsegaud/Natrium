@@ -7,6 +7,9 @@ static class Program
     [SuppressMessage("ReSharper", "UnusedParameter.Local")]
     private static int Main(string[] args)
     {
+        Console.WriteLine(0xffffffff);
+        Console.WriteLine(int.MaxValue);
+        
         // Parse args.
         string? testConfigurationFile = args.Length > 0 ? args[0] : null;
         if (string.IsNullOrEmpty(testConfigurationFile))

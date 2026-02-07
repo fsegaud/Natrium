@@ -1,0 +1,26 @@
+mov     r1  0x2
+mov     r2  1
+
+; sl
+sl      r0  0x2 0
+!assert r0  0x2
+sl      r0  0x0 1
+!assert r0  0x0
+sl      r0  0x2 1
+!assert r0  0x4
+sl      r0  0x2 0x1
+!assert r0  0x4
+sl      r0  r1  r2
+!assert r0  0x4
+
+; sr
+sr      r0  0x2 0
+!assert r0  0x2 
+sr      r0  0x0 1
+!assert r0  0x0
+sr      r0  0x2 1
+!assert r0  0x1
+sr      r0  0x2 0x1
+!assert r0  0x1
+sr      r0  r1  r2
+!assert r0  0x1

@@ -2,5 +2,5 @@
 - gh actions
 
 - cleanup
-- binary operations
 - register indirection
+- ceil/floor/round

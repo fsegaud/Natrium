@@ -1,0 +1,60 @@
+mov     r1  0xf
+mov     r2  0x3
+
+; not
+not     r0  0x0
+!assert r0  0xffffffff
+not     r0  0xffffffff
+!assert r0  0x0
+not     r0  0xf
+!assert r0  0xfffffff0
+not     r0  0
+!assert r0  0xffffffff
+
+; and
+and     r0  0x0 0x0
+!assert r0  0x0 
+and     r0  0xf 0xf
+!assert r0  0xf 
+and     r0  0xf 0x3
+!assert r0  0x3 
+and     r0  0   0
+!assert r0  0   
+and     r0  15  15
+!assert r0  15  
+and     r0  15  3
+!assert r0  3
+and     r0  r1  r2
+!assert r0  0x3
+
+; or
+or      r0  0x0  0x0
+!assert r0  0x0
+or      r0  0xf  0xf
+!assert r0  0xf
+or      r0  0xf  0x3
+!assert r0  0xf
+or      r0  0    0
+!assert r0  0
+or      r0  15   15
+!assert r0  15
+or      r0  15   3
+!assert r0  15
+or      r0  r1  r2
+!assert r0  0xf
+
+; xor
+xor     r0  0x0 0x0
+!assert r0  0x0
+xor     r0  0xf 0xf
+!assert r0  0x0
+xor     r0  0xf 0x3
+!assert r0  0xc
+xor     r0  0   0
+!assert r0  0
+xor     r0  15  15
+!assert r0  0
+xor     r0  15  3
+!assert r0  12
+xor     r0  r1  r2
+!assert r0  0xc

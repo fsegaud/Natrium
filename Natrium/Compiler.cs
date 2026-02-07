@@ -80,6 +80,8 @@ namespace Natrium
                 succeed &= Check(ParseDestinationOperations(index));
                 succeed &= Check(ParseUnaryOperations(index));
                 succeed &= Check(ParseBinaryOperations(index));
+                succeed &= Check(ParseBitwise1Operations(index));
+                succeed &= Check(ParseBitwise2Operations(index));
                 succeed &= Check(ParseDeviceOperations(index));
 #if NATRIUM_FEATURE_MEMORY
                 succeed &= Check(ParseMemoryOperations(index));
@@ -874,6 +876,133 @@ namespace Natrium
             return true;
         }
         
+        private bool ParseBitwise1Operations(uint index)
+        {
+            if (_skipLine[index])
+                    return true;
+                
+            Match match = RegexCollection.Bitwise1Operations.Match(_lines[index]);
+            if (match.Success)
+            {
+                string opt = match.Groups["opt"].Value;
+                string opd = match.Groups["opd"].Value;
+                string opl = match.Groups["opl"].Value;
+
+                Instruction instruction = default;
+                instruction.RawInstruction = _rawLines[index];
+                instruction.PreprocessedInstruction = _lines[index];
+                instruction.Line = index + 1u;
+                
+                switch (opt)
+                {
+                    case "not": instruction.Operation = Operation.BitwiseNot; break;
+                    default:
+                    {
+                        LastError = new Result(Error.OperationNotSupported, instruction);
+                        return false;
+                    }
+                }
+
+                instruction.DestinationRegistryType = Instruction.OperandType.UserRegister;
+                instruction.Destination = uint.Parse(opd.Substring(1));
+                
+                if (opl[0] == 'r')
+                {
+                    instruction.LeftOperandType = Instruction.OperandType.UserRegister;
+                    instruction.LeftOperandValue = int.Parse(opl.Substring(1));
+                }
+                else if (opl.StartsWith("0x"))
+                {
+                    instruction.LeftOperandType = Instruction.OperandType.HexLiteral;
+                    instruction.LeftOperandValue = int.Parse(opl.Substring(2), NumberStyles.HexNumber);
+                }
+                else
+                {
+                    instruction.LeftOperandType = Instruction.OperandType.Literal;
+                    instruction.LeftOperandValue = float.Parse(opl, CultureInfo.InvariantCulture);
+                }
+
+                _skipLine[index] = true;
+                _instructions.Add(instruction);
+            }
+
+            return true;
+        }
+        
+        private bool ParseBitwise2Operations(uint index)
+        {
+            if (_skipLine[index])
+                    return true;
+                
+            Match match = RegexCollection.Bitwise2Operations.Match(_lines[index]);
+            if (match.Success)
+            {
+                string opt = match.Groups["opt"].Value;
+                string opd = match.Groups["opd"].Value;
+                string opl = match.Groups["opl"].Value;
+                string opr = match.Groups["opr"].Value;
+
+                Instruction instruction = default;
+                instruction.RawInstruction = _rawLines[index];
+                instruction.PreprocessedInstruction = _lines[index];
+                instruction.Line = index + 1u;
+                
+                switch (opt)
+                {
+                    case "and": instruction.Operation = Operation.BitwiseAnd; break;
+                    case "or": instruction.Operation = Operation.BitwiseOr; break;
+                    case "xor": instruction.Operation = Operation.BitwiseExclusiveOr; break;
+                    case "sl": instruction.Operation = Operation.BitwiseShiftLeft; break;
+                    case "sr": instruction.Operation = Operation.BitwiseShiftRight; break;
+                    default:
+                    {
+                        LastError = new Result(Error.OperationNotSupported, instruction);
+                        return false;
+                    }
+                }
+
+                instruction.DestinationRegistryType = Instruction.OperandType.UserRegister;
+                instruction.Destination = uint.Parse(opd.Substring(1));
+                
+                if (opl[0] == 'r')
+                {
+                    instruction.LeftOperandType = Instruction.OperandType.UserRegister;
+                    instruction.LeftOperandValue = int.Parse(opl.Substring(1));
+                }
+                else if (opl.StartsWith("0x"))
+                {
+                    instruction.LeftOperandType = Instruction.OperandType.HexLiteral;
+                    instruction.LeftOperandValue = int.Parse(opl.Substring(2), NumberStyles.HexNumber);
+                }
+                else
+                {
+                    instruction.LeftOperandType = Instruction.OperandType.Literal;
+                    instruction.LeftOperandValue = float.Parse(opl, CultureInfo.InvariantCulture);
+                }
+
+                if (opr[0] == 'r')
+                {
+                    instruction.RightOperandType = Instruction.OperandType.UserRegister;
+                    instruction.RightOperandValue = int.Parse(opr.Substring(1));
+                }
+                else if (opr.StartsWith("0x"))
+                {
+                    instruction.RightOperandType = Instruction.OperandType.HexLiteral;
+                    instruction.RightOperandValue = int.Parse(opr.Substring(2), NumberStyles.HexNumber);
+                }
+                else
+                {
+                    instruction.RightOperandType = Instruction.OperandType.Literal;
+                    instruction.RightOperandValue = float.Parse(opr, CultureInfo.InvariantCulture);
+                }
+
+                _skipLine[index] = true;
+                _instructions.Add(instruction);
+            }
+
+            return true;
+        }
+        
         private bool ParseDeviceOperations(uint index)
         {
             if (_skipLine[index])
@@ -1055,6 +1184,8 @@ namespace Natrium
             internal static readonly Regex DestinationOperations = new Regex(@"^(?<opt>inc|dec)\s+(?<opd>r\d+\b|ra|sp)$"); 
             internal static readonly Regex UnaryOperations = new Regex(@"^(?<opt>mov|sqrt|cos|sin|tan|acos|asin|atan|!assert)\s+(?<opd>r\d+\b||ra|sp)\s+(?<opl>-?\d+[.]?\d*|r\d+\b|0x[0-9a-fA-F]+\b|ra|sp)$");
             internal static readonly Regex BinaryOperations = new Regex(@"^(?<opt>add|sub|mul|div|mod|pow|rnd|rndi|round|apx|min|max|eq|ne|neq|gt|gte|lt|lte)\s+(?<opd>r\d+\b|ra|sp)\s+(?<opl>-?\d+[.]?\d*|r\d+\b|0x[0-9a-fA-F]+\b|ra|sp)\s+(?<opr>-?\d+[.]?\d*|r\d+\b|0x[0-9a-fA-F]+\b|ra|sp)$");
+            internal static readonly Regex Bitwise1Operations = new Regex(@"^(?<opt>not)\s+(?<opd>r\d+\b)\s+(?<opl>r\d+\b|\d+|0x[0-9a-fA-F]+\b)$");
+            internal static readonly Regex Bitwise2Operations = new Regex(@"^(?<opt>and|or|xor|sl|sr)\s+(?<opd>r\d+\b)\s+(?<opl>r\d+\b|\d+|0x[0-9a-fA-F]+\b)\s+(?<opr>r\d+\b|\d+|0x[0-9a-fA-F])$");
             internal static readonly Regex ReadDeviceOperations = new Regex(@"^(?<opt>ld)\s+(?<opd>r\d+\b)\s+(?<opl>d\d+\.\d+)$");
             internal static readonly Regex WriteDeviceOperations = new Regex(@"^(?<opt>sd)\s+(?<opd>d\d+\.\d+\b)\s+(?<opl>r\d+\b|-?\d+[.]?\d*|r\d+\b|0x[0-9a-fA-F]+\b)$");
 

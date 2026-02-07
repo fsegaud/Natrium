@@ -695,6 +695,31 @@ namespace Natrium
                     case Operation.ReadWriteDevice:
                         TrySetDestination(ref instruction, leftOperandValue);
                         break;
+                    
+                    case Operation.BitwiseNot:
+                        TrySetDestination(ref instruction, ~(int)leftOperandValue);
+                        break;
+                    
+                    case Operation.BitwiseAnd:
+                        TrySetDestination(ref instruction, (int)leftOperandValue & (int)rightOperandValue);
+                        break;
+                    
+                    case Operation.BitwiseOr:
+                        TrySetDestination(ref instruction, (int)leftOperandValue | (int)rightOperandValue);
+                        break;
+                    
+                    case Operation.BitwiseExclusiveOr:
+                        TrySetDestination(ref instruction, (int)leftOperandValue ^ (int)rightOperandValue);
+                        break;
+                    
+                    case Operation.BitwiseShiftLeft:
+                        TrySetDestination(ref instruction, (int)leftOperandValue << (int)rightOperandValue);
+                        break;
+                    
+                    case Operation.BitwiseShiftRight:
+                        TrySetDestination(ref instruction, (int)leftOperandValue >> (int)rightOperandValue);
+                        break;
+                    
 #if NATRIUM_FEATURE_MEMORY
                     case Operation.AllocateMemory:
                     {
