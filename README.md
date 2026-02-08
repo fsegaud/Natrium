@@ -1,3 +1,5 @@
+[![.NET](https://github.com/fsegaud/Natrium/actions/workflows/dotnet.yml/badge.svg)](https://github.com/fsegaud/Natrium/actions/workflows/dotnet.yml)
+
 ![image](README.md.res/logo.png)
 
 <picture>

@@ -299,7 +299,6 @@ namespace Natrium
                     _lines[index] = _lines[index].Replace(label, jumpLine.ToString()).TrimEnd();
                 }
 
-                // TODO ???
                 // Do not continue, instruction will be processed later.
             }
 

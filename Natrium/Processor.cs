@@ -126,7 +126,7 @@ namespace Natrium
                     throw new InvalidOperationException();
                 
                 default:
-                    throw new NotImplementedException();
+                    throw new NotSupportedException(nameof(instruction.DestinationRegistryType));
             }
 
             return true;
@@ -187,7 +187,7 @@ namespace Natrium
                     break;
                 
                 default:
-                    throw new NotImplementedException();
+                    throw new NotSupportedException(nameof(instruction.DestinationRegistryType));
             }
 
             return true;
@@ -240,19 +240,23 @@ namespace Natrium
             return true;
         }
 
-        // TODO: Make static?
-        private bool TryResolveJump(Program program, ref Instruction instruction, out int destinationIndex, out uint returnAddress)
+        private bool TryResolveJump(ref Instruction instruction, out int destinationIndex, out uint returnAddress)
         {
             destinationIndex = 0;
             returnAddress = 0;
+            
+            if (_program == null)
+            {
+                return false;
+            }
             
             if (!TryGetDestination(ref instruction, out double destinationValue))
                 return false;
 
             destinationIndex = -1;
-            for (var searchIndex = 0; searchIndex < program.Instructions.Length; searchIndex++)
+            for (var searchIndex = 0; searchIndex < _program?.Instructions.Length; searchIndex++)
             {
-                if (program.Instructions[searchIndex].Line == (uint)destinationValue)
+                if (_program.Instructions[searchIndex].Line == (uint)destinationValue)
                 {
                     destinationIndex = searchIndex;
                     break;
@@ -266,11 +270,11 @@ namespace Natrium
             }
             
             // Find next instruction (+1 wouldn't ignore blank lines and comments).
-            for (var searchIndex = 0u; searchIndex < program.Instructions.Length; searchIndex++)
+            for (var searchIndex = 0u; searchIndex < _program?.Instructions.Length; searchIndex++)
             {
-                if (program.Instructions[searchIndex].Line > instruction.Line)
+                if (_program.Instructions[searchIndex].Line > instruction.Line)
                 {
-                    returnAddress = program.Instructions[searchIndex].Line;
+                    returnAddress = _program.Instructions[searchIndex].Line;
                     break;
                 }
             }
@@ -573,7 +577,7 @@ namespace Natrium
                     case Operation.Jump:
                     {
                         // ReSharper disable once UnusedVariable
-                        if (!TryResolveJump(_program, ref instruction, out int destinationIndex, out uint returnAddress))
+                        if (!TryResolveJump(ref instruction, out int destinationIndex, out uint returnAddress))
                         {
                             LastError = new Result(Error.InvalidJump, instruction);
                             return false;
@@ -586,7 +590,7 @@ namespace Natrium
 
                     case Operation.JumpReturnAddress:
                     {
-                        if (!TryResolveJump(_program, ref instruction, out int destinationIndex, out uint returnAddress))
+                        if (!TryResolveJump(ref instruction, out int destinationIndex, out uint returnAddress))
                         {
                             LastError = new Result(Error.InvalidJump, instruction);
                             return false;
@@ -614,7 +618,7 @@ namespace Natrium
                     case Operation.BranchLesserThanOrEqualReturnAddress:
                     {
                         // Resolve jump.
-                        if (!TryResolveJump(_program, ref instruction, out int destinationIndex, out uint returnAddress))
+                        if (!TryResolveJump(ref instruction, out int destinationIndex, out uint returnAddress))
                         {
                             LastError = new Result(Error.InvalidJump, instruction);
                             return false;
