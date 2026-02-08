@@ -78,6 +78,7 @@ public static class Program
             0xb => ConsoleColor.White,
             0xc => ConsoleColor.Gray,
             0xd => ConsoleColor.DarkGray,
+            _ => throw new ArgumentOutOfRangeException(nameof(consoleColorByte), consoleColorByte, null)
         };
         
         colorSet.Foreground = (consoleColorByte & 0x0f) switch
@@ -93,7 +94,6 @@ public static class Program
             0xb => ConsoleColor.White,
             0xc => ConsoleColor.Gray,
             0xd => ConsoleColor.DarkGray,
-            
             _ => throw new ArgumentOutOfRangeException(nameof(consoleColorByte), consoleColorByte, null)
         };
     }
