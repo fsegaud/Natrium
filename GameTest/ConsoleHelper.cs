@@ -1,5 +1,6 @@
 namespace GameTest;
 
+
 public static class ConsoleHelper
 {
     private static Natrium.DebugData _prevData; 
@@ -112,8 +113,49 @@ public static class ConsoleHelper
         Console.WriteLine();
         
 #if NATRIUM_FEATURE_MEMORY
-        Console.WriteLine($"[dbg]                  memory: {string.Join(' ',  data.Memory)}");
-        Console.WriteLine($"[dbg]               memblocks: {string.Join(' ',  data.MemoryBlocks)}");
+        Console.ForegroundColor = ConsoleColor.DarkGray;
+        Console.Write("                   memory: ");
+        Console.ResetColor();
+        for (var i = 0; i < data.Memory.Length; i++)
+        {
+            if (_prevData.Memory != null &&_prevData.Memory.Length == data.Memory.Length && 
+                Math.Abs(_prevData.Memory[i] - data.Memory[i]) > double.Epsilon)
+            {
+                Console.ForegroundColor = ConsoleColor.Magenta;
+                Console.Write($"{data.Memory[i]}");
+                Console.ResetColor();
+                Console.Write(" ");
+            }
+            else
+            {
+                Console.Write($"{data.Memory[i]}");
+                Console.Write(" ");
+            }
+        }
+        
+        Console.WriteLine();
+        
+        Console.ForegroundColor = ConsoleColor.DarkGray;
+        Console.Write("                   malloc: ");
+        Console.ResetColor();
+        for (var i = 0; i < data.MemoryBlocks.Length; i++)
+        {
+            if (_prevData.MemoryBlocks != null &&_prevData.MemoryBlocks.Length == data.MemoryBlocks.Length && 
+                Math.Abs(_prevData.MemoryBlocks[i] - data.MemoryBlocks[i]) > double.Epsilon)
+            {
+                Console.ForegroundColor = ConsoleColor.Magenta;
+                Console.Write($"{data.MemoryBlocks[i]}");
+                Console.ResetColor();
+                Console.Write(" ");
+            }
+            else
+            {
+                Console.Write($"{data.MemoryBlocks[i]}");
+                Console.Write(" ");
+            }
+        }
+        
+        Console.WriteLine();
 #endif
 
         _prevData = data;
