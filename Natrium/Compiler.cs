@@ -197,7 +197,7 @@ namespace Natrium
                     case "stack" : program.RequiredStack = value; break;
                     case "devices" : program.RequiredDevices = value; break;
 #if NATRIUM_FEATURE_MEMORY
-                    case "memory" : throw new NotImplementedException();
+                    case "memory" : program.RequiredMemory = value; break;
 #endif
                     default: throw new NotSupportedException();
                 }
@@ -1097,7 +1097,7 @@ namespace Natrium
                 string opl = matchMalloc.Groups["opl"].Value;
                 
                 Instruction instruction = default;
-                instruction.RawText = _lines[index];
+                instruction.RawInstruction = _lines[index];
                 instruction.Line = index + 1;
 
                 instruction.Operation = Operation.AllocateMemory;
@@ -1116,7 +1116,7 @@ namespace Natrium
                 string opd = matchFree.Groups["opd"].Value;
                 
                 Instruction instruction = default;
-                instruction.RawText = _lines[index];
+                instruction.RawInstruction = _lines[index];
                 instruction.Line = index + 1;
 
                 instruction.Operation = Operation.FreeMemory;

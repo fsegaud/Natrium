@@ -14,8 +14,9 @@ namespace Natrium
         public uint RequiredStack { get; internal set; }
         [ProtoBuf.ProtoMember(4)]
         public uint RequiredDevices { get; internal set; }
-        
         [ProtoBuf.ProtoMember(5)]
+        public uint RequiredMemory { get; internal set; }
+        [ProtoBuf.ProtoMember(6)]
         internal Instruction[] Instructions = Array.Empty<Instruction>();
         
         public string ToBase64()

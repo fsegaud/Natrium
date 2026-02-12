@@ -33,18 +33,18 @@ namespace Natrium
         public  Action<DebugData>? DebugCallback { get; set; }
         
 #if NATRIUM_FEATURE_MEMORY
-        public Processor(uint numRegisters = 8u, uint stackLength = 16u, uint memoryLength = 32u, uint numDevices = 0u, int frequencyHz = 0)
+        public Processor(uint numRegisters = 8u, uint stackLength = 16u, uint memoryLength = 32u, uint numDevices = 0u)
 #else
         public Processor(uint numRegisters = 8u, uint stackLength = 16u, uint numDevices = 0u)
 #endif
         {
             _registers = new double[numRegisters];
             _stack = new double[stackLength];
+            _devices = new IDevice[numDevices];
 #if  NATRIUM_FEATURE_MEMORY
             _memory = new double[memoryLength];
             _memoryBlocks = new uint[memoryLength];
 #endif
-            _devices = new IDevice[numDevices];
         }
 
         public TDevice? PlugDevice<TDevice>(uint deviceSlot, TDevice device) where TDevice : class, IDevice
@@ -783,7 +783,7 @@ namespace Natrium
 
                         if (_memoryBlocks[freePointer] == 0)
                         {
-                            LastError = new Result(Error.MemoryAlreadyFree, instruction);
+                            LastError = new Result(Error.DoubleFree, instruction);
                             return false;
                         }
                         

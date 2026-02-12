@@ -29,7 +29,7 @@ static class Program
         
         Compiler compiler = new Compiler();
         compiler.InclusionResolver = new DirectoryInclusionResolver("src");
-        Processor processor = new Processor(8, 8, 2);
+        Processor processor = new Processor(8, 8, 8,2);
         processor.DebugCallback = debugCallback;
         processor.PlugDevice(0, new TestDevice());
 

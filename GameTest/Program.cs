@@ -17,7 +17,7 @@ public static class Program
             return;
         }
         
-        Natrium.Processor processor = new Natrium.Processor(16, 16, 2);
+        Natrium.Processor processor = new Natrium.Processor(16, 16, 0, 2);
         Natrium.Devices.Screen? screen = processor.PlugDevice(0, new Natrium.Devices.Screen(24, 8));
         Natrium.Devices.Keyboard? keyboard = processor.PlugDevice(1, new Natrium.Devices.Keyboard());
         processor.DebugCallback = debugCallback;
