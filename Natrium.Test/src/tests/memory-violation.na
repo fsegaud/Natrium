@@ -1,0 +1,3 @@
+malloc  r0 2
+inc     r0
+free    r0

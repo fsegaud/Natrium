@@ -167,6 +167,29 @@
     {
       "SourceFile": "src/tests/include-filenotfound.na",
       "CompilerError" : "FileNotFound"
+    },
+    {
+      "SourceFile": "src/tests/memory.na"
+    },
+    {
+      "SourceFile": "src/tests/memory-null.na",
+      "RuntimeError" : "NullPointer"
+    },
+    {
+      "SourceFile": "src/tests/memory-violation.na",
+      "RuntimeError" : "MemoryViolation"
+    },
+    {
+      "SourceFile": "src/tests/memory-doublefree.na",
+      "RuntimeError" : "DoubleFree"
+    },
+    {
+      "SourceFile": "src/tests/memory-unallocated.na",
+      "RuntimeError" : "UnallocatedMemory"
+    },
+    {
+      "SourceFile": "src/tests/memory-oom.na",
+      "RuntimeError" : "OutOfMemory"
     }
   ]
 }
