@@ -298,6 +298,10 @@ namespace Natrium
 
             Array.Clear(_registers, 0, _registers.Length);
             Array.Clear(_stack, 0, _stack.Length);
+#if NATRIUM_FEATURE_MEMORY
+            Array.Clear(_memory, 0, _memory.Length);
+            Array.Clear(_memoryBlocks, 0, _memoryBlocks.Length);
+#endif
             if (unplugDevices)
             {
                 Array.Clear(_devices, 0, _devices.Length);
@@ -797,6 +801,62 @@ namespace Natrium
                         while (_memoryBlocks[memIndex] == freePointer)
                         {
                             _memoryBlocks[memIndex++] = 0;
+                        }
+                        
+                        break;
+                    }
+
+                    case Operation.SetMemory:
+                    {
+                        TryGetDestination(ref instruction, out destinationValue);
+                        
+                        uint setPointer = (uint)destinationValue;
+                        if (setPointer == 0)
+                        {
+                            LastError = new Result(Error.NullPointer, instruction);
+                            return false;
+                        }
+                        
+                        if (_memoryBlocks[setPointer] == 0)
+                        {
+                            LastError = new Result(Error.UnallocatedMemory, instruction);
+                            return false;
+                        }
+
+                        double value = instruction.LeftOperandValue;
+                        if (!TryGetOperandValue(ref instruction, instruction.LeftOperandType, ref value))
+                        {
+                            return false;
+                        }
+
+                        _memory[setPointer] = value;
+                        
+                        break;
+                    }
+
+                    case Operation.LoadMemory: // TODO: Memory -> check bounds on all operations.
+                    {
+                        double loadPointer = instruction.LeftOperandValue;
+                        TryGetOperandValue(ref instruction, instruction.LeftOperandType, ref loadPointer);
+                        
+                        uint loadPointerInt = (uint)loadPointer;
+                        
+                        if (loadPointerInt == 0)
+                        {
+                            LastError = new Result(Error.NullPointer, instruction);
+                            return false;
+                        }
+                        
+                        if (_memoryBlocks[loadPointerInt] == 0)
+                        {
+                            LastError = new Result(Error.UnallocatedMemory, instruction);
+                            return false;
+                        }
+                        
+                        double value = _memory[loadPointerInt];
+                        if (!TrySetDestination(ref instruction, value))
+                        {
+                            return false;
                         }
                         
                         break;

@@ -1090,6 +1090,8 @@ namespace Natrium
                 
             Match matchMalloc = RegexCollection.AllocateMemory.Match(_lines[index]);
             Match matchFree = RegexCollection.FreeMemory.Match(_lines[index]);
+            Match matchSet = RegexCollection.SetMemory.Match(_lines[index]);
+            Match matchLoad = RegexCollection.LoadMemory.Match(_lines[index]);
             
             if (matchMalloc.Success)
             {
@@ -1097,7 +1099,8 @@ namespace Natrium
                 string opl = matchMalloc.Groups["opl"].Value;
                 
                 Instruction instruction = default;
-                instruction.RawInstruction = _lines[index];
+                instruction.RawInstruction = _rawLines[index];
+                instruction.PreprocessedInstruction = _lines[index];
                 instruction.Line = index + 1;
 
                 instruction.Operation = Operation.AllocateMemory;
@@ -1116,13 +1119,69 @@ namespace Natrium
                 string opd = matchFree.Groups["opd"].Value;
                 
                 Instruction instruction = default;
-                instruction.RawInstruction = _lines[index];
+                instruction.RawInstruction = _rawLines[index];
+                instruction.PreprocessedInstruction = _lines[index];
                 instruction.Line = index + 1;
 
                 instruction.Operation = Operation.FreeMemory;
                 
                 instruction.DestinationRegistryType = Instruction.OperandType.UserRegister;
                 instruction.Destination = uint.Parse(opd.Substring(1));
+                
+                _skipLine[index] = true;
+                _instructions.Add(instruction);
+            }
+            else if (matchSet.Success)
+            {
+                string opd = matchSet.Groups["opd"].Value;
+                string opl = matchSet.Groups["opl"].Value;
+                
+                Instruction instruction = default;
+                instruction.RawInstruction = _rawLines[index];
+                instruction.PreprocessedInstruction = _lines[index];
+                instruction.Line = index + 1;
+
+                instruction.Operation = Operation.SetMemory;
+                
+                instruction.DestinationRegistryType = Instruction.OperandType.UserRegister;
+                instruction.Destination = uint.Parse(opd.Substring(1));
+                
+                if (opl[0] == 'r')
+                {
+                    instruction.LeftOperandType = Instruction.OperandType.UserRegister;
+                    instruction.LeftOperandValue = int.Parse(opl.Substring(1));
+                }
+                else if (opl.StartsWith("0x"))
+                {
+                    instruction.LeftOperandType = Instruction.OperandType.HexLiteral;
+                    instruction.LeftOperandValue = int.Parse(opl.Substring(2), NumberStyles.HexNumber);
+                }
+                else
+                {
+                    instruction.LeftOperandType = Instruction.OperandType.Literal;
+                    instruction.LeftOperandValue = float.Parse(opl, CultureInfo.InvariantCulture);
+                }
+                
+                _skipLine[index] = true;
+                _instructions.Add(instruction);
+            }
+            else if (matchLoad.Success)
+            {
+                string opd = matchLoad.Groups["opd"].Value;
+                string opl = matchLoad.Groups["opl"].Value;
+                
+                Instruction instruction = default;
+                instruction.RawInstruction = _rawLines[index];
+                instruction.PreprocessedInstruction = _lines[index];
+                instruction.Line = index + 1;
+
+                instruction.Operation = Operation.LoadMemory;
+                
+                instruction.DestinationRegistryType = Instruction.OperandType.UserRegister;
+                instruction.Destination = uint.Parse(opd.Substring(1));
+                
+                instruction.LeftOperandType = Instruction.OperandType.UserRegister;
+                instruction.LeftOperandValue = uint.Parse(opl.Substring(1));
                 
                 _skipLine[index] = true;
                 _instructions.Add(instruction);
@@ -1189,8 +1248,11 @@ namespace Natrium
             internal static readonly Regex WriteDeviceOperations = new Regex(@"^(?<opt>sd)\s+(?<opd>d\d+\.\d+\b)\s+(?<opl>r\d+\b|-?\d+[.]?\d*|r\d+\b|0x[0-9a-fA-F]+\b)$");
 
 #if NATRIUM_FEATURE_MEMORY
-            internal static readonly Regex AllocateMemory = new Regex(@"^(?<opt>malloc)\s+(?<opd>r\d+\b)\s+(?<opl>\d+)$"); 
+            internal static readonly Regex AllocateMemory = new Regex(@"^(?<opt>malloc)\s+(?<opd>r\d+\b)\s+(?<opl>\d+)$");
             internal static readonly Regex FreeMemory = new Regex(@"^(?<opt>free)\s+(?<opd>r\d+\b)$");
+            
+            internal static readonly Regex SetMemory = new Regex(@"^(?<opt>sm)\s+(?<opd>r\d+\b)\s+(?<opl>r\d+\b|-?\d+[.]?\d*|0x[0-9a-fA-F]+\b)$");
+            internal static readonly Regex LoadMemory = new Regex(@"^(?<opt>lm)\s+(?<opd>r\d+\b)\s+(?<opl>r\d+\b)$");
 #endif
         }
     }

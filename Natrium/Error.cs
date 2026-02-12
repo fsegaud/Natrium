@@ -27,6 +27,7 @@ namespace Natrium
 #if NATRIUM_FEATURE_MEMORY
         OutOfMemory,
         MemoryViolation,
+        UnallocatedMemory,
         NullPointer,
         DoubleFree,
 #endif

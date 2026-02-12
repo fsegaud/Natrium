@@ -60,6 +60,8 @@ namespace Natrium
 #if NATRIUM_FEATURE_MEMORY
         AllocateMemory,
         FreeMemory,
+        SetMemory,
+        LoadMemory,
 #endif
         
         Assert = 100,
